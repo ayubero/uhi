@@ -69,7 +69,6 @@ with rasterio.open(name_S2, 'w', **param) as SENTINEL2:
 print('TIFF file created')
 
 # Use shapefile to mask image
-# Me posiciono en la carpeta de trabajo
 os.chdir(file_path)
 os.getcwd()
 list_rs = glob.glob('*CompleteTile.tif')
