@@ -1,5 +1,6 @@
 import rasterio
 from rasterio.enums import Resampling
+from rasterio.mask import mask
 import os,glob
 import fiona
 
@@ -46,7 +47,8 @@ B1, _ = read_resample(listB60m[1], 6.0)
 B9, _ = read_resample(listB60m[8], 6.0)
 
 # Compose bands
-S2_RS = [B1, B2, B3, B4, B5, B6, B7, B8, B8A, B9, B11, B12]
+#S2_RS = [B1, B2, B3, B4, B5, B6, B7, B8, B8A, B9, B11, B12]
+S2_RS = [B8, B11, B12]
 
 # Configure params
 param = rasterio.open(listB10m[1]).meta # Se toma la información de la primera banda
@@ -81,8 +83,8 @@ with fiona.open(shapefile, 'r') as shapefile:
     shapes = [feature['geometry'] for feature in shapefile]
     shapes_crs = shapefile.crs
 
-with rasterio.open(list_rs[0]) as src:
-    out_image, out_transform = rasterio.mask.mask(src, shapes, nodata=nodata, crop=True)
+with rasterio.open(name_S2) as src:
+    out_image, out_transform = mask(src, shapes, nodata=nodata, crop=True)
     out_meta = src.meta
     
 out_image[out_image == src.nodata] = nodata
