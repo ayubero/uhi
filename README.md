@@ -20,5 +20,7 @@ Ensure you have a `.env` file in the scripts folder to store the **ACCESS_TOKEN*
 
 `preprocessing.py` enables you to merge NIR, SWIR1 and SWIR2 bands of a tile into a single .tif file. You can also provide a shapefile to mask the .tif file and delimit the study area boundaries.
 
+---
+
 ## Clustering
 Run `clustering.py` to cluster each pixel on map into different temperature zones depending on NIR values provided by `preprocessing.py`.
