@@ -5,7 +5,8 @@ import os,glob
 import fiona
 
 # Prompt the user to enter the path to satellite images
-file_path = input('Enter satellite images path: ')
+#file_path = input('Enter satellite images path: ')
+file_path = '/home/andres/University/uhi/data/Sentinel-2/MSI/L2A/2024/06/16/S2B_MSIL2A_20240616T105619_N0510_R094_T30TXM_20240616T123533.SAFE/GRANULE/L2A_T30TXM_A038015_20240616T105828/IMG_DATA'
 os.chdir(file_path)
 os.getcwd()
 
@@ -75,7 +76,8 @@ os.chdir(file_path)
 os.getcwd()
 list_rs = glob.glob('*CompleteTile.tif')
 
-shapefile = input('Enter shapefile to mask image: ')
+#shapefile = input('Enter shapefile to mask image: ')
+shapefile = '/home/andres/University/uhi/data/shapefiles/study_area.shp'
 
 nodata = -1
 
@@ -102,3 +104,30 @@ with rasterio.open(output_path, 'w', **out_meta) as dest:
     dest.write(out_image)
 
 print('Finished cutting')
+
+# Remove buildings from study area
+print(output_path) 
+gpkg_path = '/home/andres/University/uhi/data/gpkg/zaragoza_buildings.gpkg'
+
+# Load the geometries from the GeoPackage file
+with fiona.open(gpkg_path) as src:
+    geometries = [feature['geometry'] for feature in src]
+
+# Open the raster file
+raster_path = '/home/andres/University/uhi/data/Sentinel-2/MSI/L2A/2024/06/16/S2B_MSIL2A_20240616T105619_N0510_R094_T30TXM_20240616T123533.SAFE/GRANULE/L2A_T30TXM_A038015_20240616T105828/IMG_DATA/30TXM_20240616CompleteTile_masked.tif'
+with rasterio.open(raster_path) as src:
+    out_image, out_transform = mask(src, geometries, invert=True)
+    out_meta = src.meta
+
+# Update metadata
+out_meta.update({
+    'driver': 'GTiff',
+    'height': out_image.shape[1],
+    'width': out_image.shape[2],
+    'transform': out_transform,
+    'nodata': nodata
+})
+
+output_path = list_rs[0].replace('.tif', '_masked_without_buildings.tif')
+with rasterio.open(output_path, 'w', **out_meta) as dest:
+    dest.write(out_image)
