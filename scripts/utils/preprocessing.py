@@ -9,12 +9,12 @@ def read_resample(path, scale):
     with rasterio.open(path) as dataset:
         # Resample image to 10m where given scale is used
         data = dataset.read(
-        out_shape=(
-            dataset.count,
-            int(dataset.height * scale),
-            int(dataset.width * scale)
-        ),
-        resampling = Resampling.bilinear
+            out_shape=(
+                dataset.count,
+                int(dataset.height * scale),
+                int(dataset.width * scale)
+            ),
+            resampling = Resampling.bilinear
         )
         transform = dataset.transform * dataset.transform.scale(
             (dataset.width / data.shape[-1]),
@@ -24,26 +24,39 @@ def read_resample(path, scale):
 
 # Crop to study area
 def crop(file_path, output_path, shapefile):
-    #file_path = '/home/andres/University/uhi/data/Sentinel-2/MSI/L2A/2024/06/16/S2B_MSIL2A_20240616T105619_N0510_R094_T30TXM_20240616T123533.SAFE/GRANULE/L2A_T30TXM_A038015_20240616T105828/IMG_DATA'
     os.chdir(file_path)
 
     # List files according to Sentinel2 bands
-    listB10m = glob.glob('R10m/*.jp2')
-    listB20m = glob.glob('R20m/*.jp2')
-    listB60m = glob.glob('R60m/*.jp2')
+    listB10m = sorted(glob.glob('R10m/*.jp2'))
+    listB20m = sorted(glob.glob('R20m/*.jp2'))
+    listB60m = sorted(glob.glob('R60m/*.jp2'))
+
+    # Check all bands match
+    print('B2', listB10m[1])
+    print('B3', listB10m[2])
+    print('B4', listB10m[3])
+    print('B8', listB10m[4])
+    print('B1', listB20m[1])
+    print('B5', listB20m[5])
+    print('B6', listB20m[6])
+    print('B7', listB20m[7])
+    print('B8A', listB20m[10])
+    print('B11', listB20m[8])
+    print('B12', listB20m[9])
+    print('B9', listB60m[8])
     
     # Read and resample bands 10m
     B2, transform = read_resample(listB10m[1], 1.0)
     B3, _ = read_resample(listB10m[2], 1.0)
     B4, _ = read_resample(listB10m[3], 1.0)
     B8, _ = read_resample(listB10m[4], 1.0)
-    B5, _ = read_resample(listB20m[4], 2.0)
-    B6, _ = read_resample(listB20m[5], 2.0)
-    B7, _ = read_resample(listB20m[6], 2.0)
-    B11, _ = read_resample(listB20m[7], 2.0)
-    B12, _ = read_resample(listB20m[8], 2.0)
-    B8A, _ = read_resample(listB20m[9], 2.0) # Band 8A to 20m resolution 
-    B1, _ = read_resample(listB60m[1], 6.0)
+    B1, _ = read_resample(listB20m[1], 2.0)
+    B5, _ = read_resample(listB20m[5], 2.0)
+    B6, _ = read_resample(listB20m[6], 2.0)
+    B7, _ = read_resample(listB20m[7], 2.0)
+    B8A, _ = read_resample(listB20m[10], 2.0) # Band 8A to 20m resolution 
+    B11, _ = read_resample(listB20m[8], 2.0)
+    B12, _ = read_resample(listB20m[9], 2.0)
     B9, _ = read_resample(listB60m[8], 6.0)
 
     # Compose bands
@@ -61,7 +74,7 @@ def crop(file_path, output_path, shapefile):
 
     # Output name
     os.chdir(output_path)
-    name_S2 = os.path.join(os.getcwd(), listB10m[1][6:20] + 'CompleteTile.tif')
+    name_S2 = os.path.join(os.getcwd(), listB10m[1][12:27] + '_CompleteTile.tif')
 
     # Export compound image
     with rasterio.open(name_S2, 'w', **param) as SENTINEL2:
@@ -106,16 +119,12 @@ def crop(file_path, output_path, shapefile):
     print('Finished cutting')
 
 # Remove buildings from study area
-'''def mask_buildings():
-    print(output_path) 
-    gpkg_path = '/home/andres/University/uhi/data/gpkg/zaragoza_buildings.gpkg'
-
+def mask_buildings(gpkg_path, raster_path, output_path, nodata=-1):
     # Load the geometries from the GeoPackage file
     with fiona.open(gpkg_path) as src:
         geometries = [feature['geometry'] for feature in src]
 
     # Open the raster file
-    raster_path = '/home/andres/University/uhi/data/Sentinel-2/MSI/L2A/2024/06/16/S2B_MSIL2A_20240616T105619_N0510_R094_T30TXM_20240616T123533.SAFE/GRANULE/L2A_T30TXM_A038015_20240616T105828/IMG_DATA/30TXM_20240616CompleteTile_masked.tif'
     with rasterio.open(raster_path) as src:
         out_image, out_transform = mask(src, geometries, invert=True)
         out_meta = src.meta
@@ -129,6 +138,5 @@ def crop(file_path, output_path, shapefile):
         'nodata': nodata
     })
 
-    output_path = list_rs[0].replace('.tif', '_masked_without_buildings.tif')
     with rasterio.open(output_path, 'w', **out_meta) as dest:
-        dest.write(out_image)'''
+        dest.write(out_image)
