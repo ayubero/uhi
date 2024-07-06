@@ -20,12 +20,13 @@ for raster_name in list:
 
         # Normalize for better visualization
         #band = normalize(band)
+        band = np.ma.masked_where(band == src.nodata, band)
 
         # Export
         img_name = raster_name.replace('.tif', '_nir.png')
         plt.imsave(img_name, band, cmap='plasma')
 
-        # Read RGB bands
+        '''# Read RGB bands
         red = src.read(4)
         green = src.read(3)
         blue = src.read(2)
@@ -36,11 +37,10 @@ for raster_name in list:
         blue = normalize(blue)
         
         # Stack the bands into an RGB image
-
         # Export
         rgb = np.dstack((red, green, blue))
         img_name = raster_name.replace('.tif', '_rgb.png')
-        plt.imsave(img_name, rgb)
+        plt.imsave(img_name, rgb)'''
 
 '''# Remove all images
 images = glob.glob('*.png')

@@ -2,8 +2,9 @@ import numpy as np
 import rasterio
 from rasterio.plot import show
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 from sklearn.cluster import KMeans
+
+N_CLUSTERS = 5 # One cluster is for mask
 
 file_path = '/home/andres/University/uhi/data/sentinel/20230403T105629_StudyArea.tif'
 
@@ -32,8 +33,7 @@ with rasterio.open(file_path) as dataset:
     data = band.flatten().reshape(-1, 1)  # Reshape to a column vector
 
     # Perform K-means clustering
-    num_clusters = 5  # One cluster is for mask
-    kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(data)
+    kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=0).fit(data)
 
     # Assign to each pixel its centroid value
     quantized_clusters = kmeans.cluster_centers_[kmeans.labels_]
@@ -46,7 +46,7 @@ with rasterio.open(file_path) as dataset:
     plt.figure(figsize=(10, 10))
     plt.imshow(quantized_clusters, cmap='plasma')
     plt.colorbar(label='Cluster')
-    plt.title(f'Pixel Clusters (K={num_clusters-1})')
+    plt.title(f'Pixel Clusters (K={N_CLUSTERS-1})')
     plt.show()
 
     # Export

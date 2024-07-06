@@ -44,7 +44,7 @@ s3 = boto3.resource(
 ) # Generated secrets
 
 # Get info about products
-product_url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name%20eq%20%27SENTINEL-2%27%20and%20Attributes/OData.CSC.DoubleAttribute/any(att:att/Name%20eq%20%27cloudCover%27%20and%20att/OData.CSC.DoubleAttribute/Value%20le%2030.00)%20and%20OData.CSC.Intersects(area=geography%27SRID=4326;POINT(-0.88482371152898%2041.648336063076243)%27)%20and%20ContentDate/Start%20gt%202023-04-01T00:00:00.000Z%20and%20ContentDate/Start%20lt%202023-04-30T00:00:00.000Z&$orderby=ContentDate/Start%20desc'
+product_url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name%20eq%20%27SENTINEL-2%27%20and%20Attributes/OData.CSC.DoubleAttribute/any(att:att/Name%20eq%20%27cloudCover%27%20and%20att/OData.CSC.DoubleAttribute/Value%20le%2030.00)%20and%20OData.CSC.Intersects(area=geography%27SRID=4326;POINT(-0.88482371152898%2041.648336063076243)%27)%20and%20ContentDate/Start%20gt%202023-09-01T00:00:00.000Z%20and%20ContentDate/Start%20lt%202023-09-30T00:00:00.000Z&$orderby=ContentDate/Start%20desc'
 
 # Fetch the JSON data from the URL
 response = requests.get(product_url)
