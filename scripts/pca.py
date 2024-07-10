@@ -44,5 +44,5 @@ for index, image in enumerate(pca_images):
     # Plot the result
     plt.figure(figsize=(10, 10))
     plt.imshow(image, cmap='plasma')
-    plt.title(f'PCA')
+    plt.title(f'PCA - Component {index} explains {round(pca.explained_variance_ratio_[index]*100, 2)}% of the variance')
     plt.show()

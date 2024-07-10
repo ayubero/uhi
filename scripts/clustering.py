@@ -15,8 +15,8 @@ with rasterio.open(file_path) as dataset:
     rows, cols, nbands = matrix.shape
     matrix = matrix.reshape((rows*cols, nbands))
     '''
-    # Read band 1
-    band = dataset.read(8) # Change the number to read a different band if needed
+    # Read band
+    band = dataset.read(4) # Change the number to read a different band if needed
     no_data_value = dataset.nodata  # Get the no-data value for the band
 
     # Mask the no-data values

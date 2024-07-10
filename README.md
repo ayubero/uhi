@@ -24,3 +24,9 @@ Ensure you have a `.env` file in the scripts folder to store the **ACCESS_TOKEN*
 
 ## Clustering
 Run `clustering.py` to cluster each pixel on map into different temperature zones depending on NIR values provided by `preprocessing.py`.
+
+---
+
+## Temperature data
+
+https://opendata.aemet.es/centrodedescargas/productosAEMET?
