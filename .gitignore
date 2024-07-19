@@ -1,5 +1,6 @@
-Sentinel-2
 madrid/sentinel
+models/variables
+Sentinel-2
 __pycache__
 .env
 .ipynb_checkpoints

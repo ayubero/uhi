@@ -43,7 +43,7 @@ with rasterio.open(raster_list[0]) as src:
     temperatures = model.predict(X_reshaped)
 
     # Clip the predicted temperatures to the range [0, 50]
-    temperatures = np.clip(temperatures, 10, 40)
+    temperatures = np.clip(temperatures, 15, 35)
 
     # Reshape the temperatures back to the original 2D shape
     temperatures_2d = np.full((X.shape[0], X.shape[1]), np.nan)
