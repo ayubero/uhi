@@ -1,5 +1,8 @@
 madrid/sentinel
-models/variables
+models
+notebooks
+data/landcoverai
+src
 Sentinel-2
 __pycache__
 .env

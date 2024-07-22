@@ -64,7 +64,7 @@ def crop(file_path, output_path, shapefile):
     #S2_RS = [B8, B11, B12]
 
     # Configure params
-    param = rasterio.open(listB10m[1]).meta # Se toma la información de la primera banda
+    param = rasterio.open(listB10m[1]).meta # Take info from first band
     param.update(driver='GTiff',
                 count=len(S2_RS), # Band number
                 dtype='int16', # Datatype
@@ -78,8 +78,8 @@ def crop(file_path, output_path, shapefile):
 
     # Export compound image
     with rasterio.open(name_S2, 'w', **param) as SENTINEL2:
-        for num, banda in enumerate(S2_RS, start=1):
-            SENTINEL2.write(banda, num)
+        for num, band in enumerate(S2_RS, start=1):
+            SENTINEL2.write(band, num)
 
     # Mask using shapefile
     nodata = -1
