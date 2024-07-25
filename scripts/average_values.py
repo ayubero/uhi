@@ -16,11 +16,13 @@ list = glob.glob('*.tif')
 dataset = []
 no_data_value = -1
 band: np.ndarray
+source: rasterio.io.DatasetReader
 for raster_name in list:
     with rasterio.open(raster_name) as src:
         no_data_value = src.nodata
-        band = src.read(8)
-        dataset.append(src.read(8))
+        band = src.read(12)
+        dataset.append(src.read(12))
+        source = src
 
 
 # Stack all bands along a new third axis to create a 3D array
@@ -39,7 +41,18 @@ average_band = np.where(valid_count > 0, valid_sum / valid_count, no_data_value)
 # Keep no_data_value areas with the original no_data_value
 average_band[valid_count == 0] = no_data_value
 
+# Mask clusters where original band had no-data
+average_band = np.ma.masked_where(band == no_data_value, average_band)
+
 plt.figure(figsize=(10, 10))
 plt.imshow(average_band, cmap='plasma')
-plt.title(f'Average NIR')
+plt.colorbar(label='SWIR2 Values')
+plt.title(f'Average SWIR2')
 plt.show()
+
+# Export
+params = source.meta
+params.update(count = 1)
+output_name = '/home/andres/University/uhi/data/swir2_average.tif'
+with rasterio.open(output_name, 'w', **params) as dest:
+    dest.write_band(1, average_band)

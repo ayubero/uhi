@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, silhouette_samples
 
-N_CLUSTERS = 4 # One cluster is for mask
+N_CLUSTERS = 5 # One cluster is for mask
 
-file_path = '/home/andres/University/uhi/data/sentinel/20230403T105629_StudyArea.tif'
+#file_path = '/home/andres/University/uhi/data/sentinel/20230403T105629_StudyArea.tif'
+file_path = '/home/andres/University/uhi/data/swir2_average.tif'
 
 # Open the file
 with rasterio.open(file_path) as dataset:
@@ -17,18 +18,24 @@ with rasterio.open(file_path) as dataset:
     matrix = matrix.reshape((rows*cols, nbands))
     '''
     # Read band
-    band = dataset.read(8) # Change the number to read a different band if needed
+    band = dataset.read(1) # Change the number to read a different band if needed
     no_data_value = dataset.nodata  # Get the no-data value for the band
 
     # Mask the no-data values
     band = np.ma.masked_equal(band, no_data_value)
 
     # Plot the band using matplotlib
-    plt.figure(figsize=(10, 10))
-    plt.title('Band 8 - NIR')
+    '''plt.figure(figsize=(10, 10))
+    plt.title('Band 12 - SWIR2')
+    plt.colorbar(label='SWIR2 Values')
     cmap = plt.cm.plasma
     cmap.set_bad(color='none')  # Set the color for masked values to transparent
-    show(band, cmap=cmap)
+    show(band, cmap=cmap)'''
+    plt.figure(figsize=(10, 10))
+    plt.imshow(band, cmap='plasma')
+    plt.colorbar(label='SWIR2 Values')
+    plt.title(f'Band 12 - SWIR2')
+    plt.show()
 
     # Flatten the band to prepare for clustering
     data = band.flatten().reshape(-1, 1)  # Reshape to a column vector
@@ -83,11 +90,12 @@ with rasterio.open(file_path) as dataset:
 
         y_lower = y_upper + 10  # 10 for the 0 samples gap
 
-    ax1.set_title("The silhouette plot for the various clusters.")
-    ax1.set_xlabel("The silhouette coefficient values")
-    ax1.set_ylabel("Cluster label")
+    title = 'K = ' + str(N_CLUSTERS) + ' | Silhouette coefficient = ' + str(silhouette_avg)
+    ax1.set_title(title)
+    ax1.set_xlabel('The silhouette coefficient values')
+    ax1.set_ylabel('Cluster label')
 
-    ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+    ax1.axvline(x=silhouette_avg, color='red', linestyle='--')
     ax1.set_yticks([])  # Clear the yaxis labels / ticks
     ax1.set_xticks(np.arange(-0.1, 1.1, 0.2))
 
@@ -96,8 +104,8 @@ with rasterio.open(file_path) as dataset:
     # Export
     params = dataset.meta
     params.update(count = 1)
-    '''output_band = kmeans.labels_.reshape(band.shape)
-    output_band = np.ma.masked_where(band == no_data_value, output_band)
-    output_name = '/home/andres/University/uhi/data/Sentinel-2/MSI/L2A/2024/06/16/S2B_MSIL2A_20240616T105619_N0510_R094_T30TXM_20240616T123533.SAFE/GRANULE/L2A_T30TXM_A038015_20240616T105828/IMG_DATA/30TXM_20240616CompleteTile_masked_without_buildings_kmeans.tif'
+    #output_band = kmeans.labels_.reshape(band.shape)
+    #output_band = np.ma.masked_where(band == no_data_value, output_band)
+    output_name = '/home/andres/University/uhi/data/plots/clustering/swir2_kmeans.tif'
     with rasterio.open(output_name, 'w', **params) as dest:
-        dest.write_band(1, quantized_clusters)'''
+        dest.write_band(1, quantized_clusters)
