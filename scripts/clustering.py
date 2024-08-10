@@ -8,7 +8,8 @@ from sklearn.metrics import silhouette_score, silhouette_samples
 N_CLUSTERS = 5 # One cluster is for mask
 
 #file_path = '/home/andres/University/uhi/data/sentinel/20230403T105629_StudyArea.tif'
-file_path = '/home/andres/University/uhi/data/swir2_average.tif'
+#file_path = '/home/andres/University/uhi/data/swir2_average.tif'
+file_path = '/home/andres/University/uhi/data/swir2_average_without_buildings_masked.tif'
 
 # Open the file
 with rasterio.open(file_path) as dataset:
