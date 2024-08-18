@@ -4,9 +4,7 @@ The purpose of this project is to automatically detect Urban Heat Islands (UHI) 
 
 ## Installation
 
-In your working environment, install the necessary libraries as specified by requirements.txt. You can use this command:
-
-`pip install -r requirements.txt`
+This project uses poetry to manage its dependencies, so just run `poetry install --no-root` to install all dependencies mentioned in pyproject.toml. After that, execute `poetry shell` to activate the virtual environment.
 
 ## Image download
 
@@ -24,9 +22,3 @@ Ensure you have a `.env` file in the scripts folder to store the **ACCESS_TOKEN*
 
 ## Clustering
 Run `clustering.py` to cluster each pixel on map into different temperature zones depending on NIR values provided by `preprocessing.py`.
-
----
-
-## Temperature data
-
-https://opendata.aemet.es/centrodedescargas/productosAEMET?
