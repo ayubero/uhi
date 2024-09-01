@@ -27,7 +27,7 @@ def download(bucket, product: str, target: str = '') -> None:
         if not os.path.isdir(file.key):
             bucket.download_file(file.key, f'{target}{file.key}')
 
-s3_path = '/eodata/Sentinel-3/SLSTR/SL_2_LST___/2023/08/24/S3A_SL_2_LST____20230824T212144_20230824T212444_20230826T063732_0179_102_300_0540_PS1_O_NT_004.SEN3'.lstrip('/eodata')
+s3_path = '/eodata/Sentinel-3/SLSTR/SL_2_LST___/2023/08/21/S3B_SL_2_LST____20230821T104131_20230821T104431_20230821T124950_0179_083_108_2160_PS2_O_NR_004.SEN3'.lstrip('/eodata')
 
 # Establish connection to S3 resource
 s3 = boto3.resource(

@@ -1,8 +1,8 @@
 from utils.preprocessing import mask_shapefile
 import rioxarray
 
-input_path = '../madrid/subset_S3A_SL_2_LST_20230824T212144_20230824T212444_20230826T063732.tif'
-output_path = '../madrid/LST_StudyArea.tif'
+input_path = '../madrid/subset_S3B_SL_2_LST_20230821T104131_20230821T104431_20230821T124950_0179.tif'
+output_path = '../madrid/lst/LST_20230821T104131_StudyArea.tif'
 shapefile_path = '../data/shapefiles/madrid_study_area.shp'
 
 '''with rioxarray.open_rasterio(input_path) as src:
