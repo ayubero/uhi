@@ -1,9 +1,9 @@
 from utils.preprocessing import mask_shapefile
 import rioxarray
 
-input_path = '../madrid/subset_S3B_SL_2_LST_20230821T104131_20230821T104431_20230821T124950_0179.tif'
-output_path = '../madrid/lst/LST_20230821T104131_StudyArea.tif'
-shapefile_path = '../data/shapefiles/madrid_study_area.shp'
+input_path = '../data/swir2_average.tif'
+output_path = '../data/swir2_average_masked.tif'
+shapefile_path = '../data/shapefiles/zaragoza_outline.shp'
 
 '''with rioxarray.open_rasterio(input_path) as src:
     dst = src.rio.reproject('EPSG:25830')
