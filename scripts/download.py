@@ -45,8 +45,8 @@ s3 = boto3.resource(
 
 # Get info about products
 # Sentinel-2
-start_date = '2023-03-01'
-end_date = '2023-03-31'
+start_date = '2023-06-01'
+end_date = '2023-06-30'
 latitude = '41.648336063076243'
 longitude = '-0.88482371152898'
 clouds = '30.00' # Cloud percentage
