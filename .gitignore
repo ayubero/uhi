@@ -4,6 +4,7 @@ notebooks
 data/landcoverai
 data/sentinel
 data/rasters
+*.tif
 src
 Sentinel-2
 __pycache__
