@@ -45,8 +45,8 @@ s3 = boto3.resource(
 
 # Get info about products
 # Sentinel-2
-start_date = '2023-06-01'
-end_date = '2023-06-30'
+start_date = '2023-08-01'
+end_date = '2023-08-31'
 latitude = '41.648336063076243'
 longitude = '-0.88482371152898'
 clouds = '30.00' # Cloud percentage
@@ -73,7 +73,7 @@ print('Output path', output_path)
 os.makedirs(output_path, exist_ok=True)
 
 # Shapefile mask
-mask = os.path.join(target_path, 'shapefiles/study_area.shp')
+mask = os.path.join(target_path, 'shapefiles/mask.shp')
 
 for product in response.json()['value']:
     # Get S3 path

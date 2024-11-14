@@ -54,11 +54,11 @@ plt.show()
 # Export
 params = source.meta
 params.update(count = 1)
-output_name = '/home/andres/University/uhi/data/swir2_average.tif'
+output_name = os.path.abspath(os.path.join(os.getcwd(), '../swir2_average.tif'))
 with rasterio.open(output_name, 'w', **params) as dest:
     dest.write_band(1, average_band)
 
-# Mask building
+'''# Mask building
 os.chdir('/home/andres/University/uhi/data')
 mask_buildings('gpkg/zaragoza_buildings.gpkg', output_name, 'swir2_average_without_buildings.tif')
 
@@ -67,4 +67,4 @@ mask_shapefile(
     'shapefiles/zaragoza_outline.shp', 
     'swir2_average_without_buildings.tif', 
     'swir2_average_without_buildings_masked.tif'
-    )
+    )'''
