@@ -2,6 +2,8 @@ madrid/sentinel
 models
 notebooks
 data/landcoverai
+data/sentinel
+data/rasters
 src
 Sentinel-2
 __pycache__
