@@ -40,10 +40,10 @@ variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 
 # Perform cross-validation to evaluate the model's predictive performance
 cv_results <- krige.cv(
-  formula = temp_diff ~ svf + imd + ndvi,  # Specify the response variable and covariates (you can adjust this based on your problem)
-  locations = points,                            # Spatial data points
-  model = variogram_model,                       # Variogram model
-  nfold = 10                                     # Number of folds for cross-validation
+  formula = temp_diff ~ svf + imd + ndvi, # Specify the response variable and covariates
+  locations = points, # Spatial data points
+  model = variogram_model, # Variogram model
+  nfold = 10 # Number of folds for cross-validation
 )
 print(cv_results)
 
@@ -53,8 +53,57 @@ rmse <- sqrt(mean(residuals^2))
 cat("RMSE:", rmse, "\n")
 
 # Plot observed vs. predicted
-#plot(cv_results$observed, cv_results$var1.pred, 
+#plot(cv_results$observed, kriging_result$var1.pred, 
 #     xlab = "Observed", ylab = "Predicted",
 #     main = paste("Observed vs Predicted (RMSE:", round(rmse, 2), ")"))
 #abline(0, 1, col = "red")
 
+# --- INTERPOLATION ---
+# Paths to the .tif files
+svf_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor_scaled.tif"
+imd_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
+ndvi_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
+swir2_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
+
+# Load the .tif files as raster layers
+svf_raster <- raster(svf_path)
+imd_raster <- raster(imd_path)
+ndvi_raster <- raster(ndvi_path)
+swir2_raster <- raster(swir2_path)
+
+# Ensure all rasters have the same CRS, extent, and resolution
+template <- svf_raster # Use one raster as the template
+
+imd_raster <- resample(imd_raster, template, method = "bilinear")
+ndvi_raster <- resample(ndvi_raster, template, method = "bilinear")
+swir2_raster <- resample(swir2_raster, template, method = "bilinear")
+
+# Stack the covariate rasters
+covariates_stack <- stack(svf_raster, imd_raster, ndvi_raster, swir2_raster)
+names(covariates_stack) <- c("svf", "imd", "ndvi", "swir2") # Set layer names
+
+# Convert the raster stack to a SpatialPixelsDataFrame
+covariates_spdf <- as(covariates_stack, "SpatialPixelsDataFrame")
+
+# Ensure your spatial points have the same CRS
+proj4string(points) <- proj4string(template)
+
+# Define the variogram model
+variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
+
+# Perform kriging interpolation
+kriging_result <- krige(
+  formula = temp_diff ~ svf + imd + ndvi,  # Interpolation formula
+  locations = points,                     # Spatial data points
+  newdata = covariates_spdf,              # Raster stack as spatial grid
+  model = variogram_model                 # Variogram model
+)
+
+# Convert the kriging result back to a raster
+raster_output <- raster(kriging_result)
+
+# Save the output as a GeoTIFF file
+output_path <- "~/University/uhi/zaragoza/interpolation_11am_SVF+IMD+NDVI_100m.tif"
+writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
+
+#cat("Interpolated raster saved at:", output_path, "\n")
