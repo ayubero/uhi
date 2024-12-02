@@ -40,7 +40,7 @@ variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 
 # Perform cross-validation to evaluate the model's predictive performance
 cv_results <- krige.cv(
-  formula = temp_diff ~ svf + imd + ndvi, # Specify the response variable and covariates
+  formula = temp_diff ~ svf + imd + ndvi + swir2, # Specify the response variable and covariates
   locations = points, # Spatial data points
   model = variogram_model, # Variogram model
   nfold = 10 # Number of folds for cross-validation
@@ -60,10 +60,10 @@ cat("RMSE:", rmse, "\n")
 
 # --- INTERPOLATION ---
 # Paths to the .tif files
-svf_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor.tif"
-imd_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized.tif"
-ndvi_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI.tif"
-swir2_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_SWIR2_normalized.tif"
+svf_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor_scaled.tif"
+imd_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
+ndvi_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
+swir2_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
 
 # Load the .tif files as raster layers
 svf_raster <- raster(svf_path)
@@ -93,7 +93,7 @@ variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 
 # Perform kriging interpolation
 kriging_result <- krige(
-  formula = temp_diff ~ svf + imd + ndvi + swir2,  # Interpolation formula
+  formula = temp_diff ~ svf + imd + ndvi,  # Interpolation formula
   locations = points,                     # Spatial data points
   newdata = covariates_spdf,              # Raster stack as spatial grid
   model = variogram_model                 # Variogram model
@@ -103,7 +103,7 @@ kriging_result <- krige(
 raster_output <- raster(kriging_result)
 
 # Save the output as a GeoTIFF file
-output_path <- "~/University/uhi/zaragoza/interpolation_11pm_SVF+IMD+NDVI+SWIR2.tif"
+output_path <- "~/University/uhi/zaragoza/interpolation_SVF+IMD+NDVI.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
 #cat("Interpolated raster saved at:", output_path, "\n")
