@@ -3,18 +3,24 @@ import rasterio
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-def extract_patches(input_tif, target_tif, patch_size, output_dir):
+def extract_patches(input_tif, target_tif, patch_size, output_dir, stride=None):
+    if stride is None:
+        stride = patch_size # Non-overlapping patches by default
+
     with rasterio.open(input_tif) as src_input, rasterio.open(target_tif) as src_target:
         # Read all bands from input and target rasters
-        input_data = src_input.read()  # Shape: (3, H, W)
-        target_data = src_target.read(1)  # Shape: (H, W) - single band
+        input_data = src_input.read() # Shape: (3, H, W)
+        target_data = src_target.read(1) # Shape: (H, W) - single band
         
         height, width = target_data.shape
         patches = []
+
+        print('Predictors shape:', input_data.shape)
+        print('Target shape:', target_data.shape)
         
-        # Extract patches
-        for i in range(0, height - patch_size + 1, patch_size):
-            for j in range(0, width - patch_size + 1, patch_size):
+        # Extract patches using a sliding window
+        for i in range(0, height - patch_size + 1, stride):
+            for j in range(0, width - patch_size + 1, stride):
                 input_patch = input_data[:, i:i+patch_size, j:j+patch_size]
                 target_patch = target_data[i:i+patch_size, j:j+patch_size]
                 patches.append((input_patch, target_patch))
@@ -35,10 +41,10 @@ def extract_patches(input_tif, target_tif, patch_size, output_dir):
         print(f'Saved {len(train_patches)} training patches and {len(test_patches)} testing patches.')
 
 # Parameters
-input_tif = 'path/to/input.tif'  # 3-band raster
-target_tif = 'path/to/target.tif'  # 1-band raster
+input_tif = './data/raw/predictors_skf_imd_ndvi.tif' # Predictor variables
+target_tif = './data/raw/interpolation_SVF+IMD+NDVI_scaled.tif' # Target variable
 patch_size = 64
-output_dir = 'patches'
+output_dir = 'data/patches'
 
 # Extract patches and save them
 extract_patches(input_tif, target_tif, patch_size, output_dir)

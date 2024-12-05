@@ -5,6 +5,7 @@ data/landcoverai
 data/sentinel
 data/rasters
 *.tif
+*.npy
 src
 Sentinel-2
 __pycache__
