@@ -40,7 +40,7 @@ variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 
 # Perform cross-validation to evaluate the model's predictive performance
 cv_results <- krige.cv(
-  formula = temp_diff ~ svf + imd + ndvi + swir2, # Specify the response variable and covariates
+  formula = temp_diff ~ svf + imd + ndvi, # Specify the response variable and covariates
   locations = points, # Spatial data points
   model = variogram_model, # Variogram model
   nfold = 10 # Number of folds for cross-validation
@@ -60,10 +60,10 @@ cat("RMSE:", rmse, "\n")
 
 # --- INTERPOLATION ---
 # Paths to the .tif files
-svf_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor_scaled.tif"
-imd_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
-ndvi_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
-swir2_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
+svf_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor.tif"
+imd_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized.tif"
+ndvi_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI.tif"
+swir2_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_SWIR2_normalized.tif"
 
 # Load the .tif files as raster layers
 svf_raster <- raster(svf_path)

@@ -42,7 +42,7 @@ def extract_patches(input_tif, target_tif, patch_size, output_dir, stride=None):
 
 # Parameters
 input_tif = './data/raw/predictors_skf_imd_ndvi.tif' # Predictor variables
-target_tif = './data/raw/interpolation_SVF+IMD+NDVI_scaled.tif' # Target variable
+target_tif = './data/raw/interpolation_SVF+IMD+NDVI.tif' # Target variable
 patch_size = 64
 output_dir = 'data/patches'
 

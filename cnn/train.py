@@ -28,7 +28,7 @@ test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 model = CNN().to(device)
 #model = UNet(in_channels=3, out_channels=1).to(device)
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=1e-5)
+optimizer = optim.Adam(model.parameters(), lr=1e-2)
 
 # Training loop
 for epoch in range(num_epochs):
