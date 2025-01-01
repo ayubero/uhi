@@ -11,3 +11,4 @@ Sentinel-2
 __pycache__
 .env
 .ipynb_checkpoints
+*.RData
