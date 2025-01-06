@@ -25,6 +25,6 @@ params = src.meta
 print(params)
 params.update(count = 1, dtype='float32')
 
-output_path = os.path.abspath(os.path.join(os.getcwd(), '../data/rasters/Zaragoza_ETRS89_NDVI.tif'))
+output_path = os.path.abspath(os.path.join(os.getcwd(), '../data/rasters/Madrid_ETRS89_NDVI.tif'))
 with rasterio.open(output_path, 'w', **params) as dest:
         dest.write_band(1, ndvi)

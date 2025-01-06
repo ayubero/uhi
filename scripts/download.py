@@ -47,8 +47,12 @@ s3 = boto3.resource(
 # Sentinel-2
 start_date = '2023-08-01'
 end_date = '2023-08-31'
-latitude = '41.648336063076243'
-longitude = '-0.88482371152898'
+# Zaragoza
+#latitude = '41.648336063076243'
+#longitude = '-0.88482371152898'
+# Madrid
+latitude = '40.416775'
+longitude = '-3.703790'
 clouds = '30.00' # Cloud percentage
 product_url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name%20eq%20%27SENTINEL-2%27%20and%20Attributes/OData.CSC.DoubleAttribute/any(att:att/Name%20eq%20%27cloudCover%27%20and%20att/OData.CSC.DoubleAttribute/Value%20le%20' + clouds + ')%20and%20OData.CSC.Intersects(area=geography%27SRID=4326;POINT(' + longitude + '%20' + latitude + ')%27)%20and%20ContentDate/Start%20gt%20' + start_date + 'T00:00:00.000Z%20and%20ContentDate/Start%20lt%20' + end_date + 'T00:00:00.000Z&$orderby=ContentDate/Start%20desc'
 
@@ -73,7 +77,7 @@ print('Output path', output_path)
 os.makedirs(output_path, exist_ok=True)
 
 # Shapefile mask
-mask = os.path.join(target_path, 'shapefiles/mask.shp')
+mask = os.path.join(target_path, 'shapefiles/mask_madrid.shp')
 
 for product in response.json()['value']:
     # Get S3 path

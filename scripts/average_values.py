@@ -22,7 +22,7 @@ for raster_name in list:
     with rasterio.open(raster_name) as src:
         no_data_value = src.nodata
         band = src.read(12)
-        dataset.append(src.read(12))
+        dataset.append(band)
         source = src
 
 
@@ -54,7 +54,7 @@ plt.show()
 # Export
 params = source.meta
 params.update(count = 1)
-output_name = os.path.abspath(os.path.join(os.getcwd(), '../swir2_average.tif'))
+output_name = os.path.abspath(os.path.join(os.getcwd(), '../swir_average.tif'))
 with rasterio.open(output_name, 'w', **params) as dest:
     dest.write_band(1, average_band)
 
