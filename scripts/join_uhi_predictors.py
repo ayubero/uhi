@@ -3,12 +3,18 @@ from rasterio.enums import Resampling
 from rasterio.merge import merge
 
 # Input TIF file paths
-tif_files = [
+'''tif_files = [
     'Zaragoza_ETRS89_Sky_View_Factor.tif', 
     'Zaragoza_ETRS89_Imperviousness_Density_normalized.tif', 
     'Zaragoza_ETRS89_NDVI.tif'
 ]
-data_dir = '../data/rasters/'
+data_dir = '../data/rasters/'''
+tif_files = [
+    'Madrid_ETR89_SVF.tif', 
+    'Madrid_ETR89_IMD_normalized.tif', 
+    'Madrid_ETRS89_NDVI.tif'
+]
+data_dir = '../madrid/rasters/'
 
 # Open the reference raster (high resolution)
 with rasterio.open(data_dir + tif_files[0]) as ref_raster:
@@ -53,7 +59,7 @@ with rasterio.open(output_file, 'w', **ref_profile) as dst:
 
 print(f'3-band raster saved to {output_file}')
 
-# Target variable also needs the same resolution
+'''# Target variable also needs the same resolution
 target_path = data_dir + 'interpolation_SVF+IMD+NDVI.tif'
 with rasterio.open(target_path) as src:
     if (
@@ -82,4 +88,4 @@ ref_profile.update(count=1)
 with rasterio.open(output_file, 'w', **ref_profile) as dst:
     dst.write(band, 1)
 
-print(f'Target raster saved to {output_file}')
+print(f'Target raster saved to {output_file}')'''

@@ -7,8 +7,8 @@ from scipy.signal import triang
 import matplotlib.pyplot as plt
 from model import CNN
 
-input_path = './data/raw/predictors_skf_imd_ndvi.tif'
-output_path = './data/result.tif'
+input_path = './data/raw/madrid_predictors_skf_imd_ndvi.tif'
+output_path = './data/madrid_result.tif'
 model_path = 'checkpoint.pth.tar'
 
 with rasterio.open(input_path) as src:
