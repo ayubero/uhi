@@ -13,3 +13,4 @@ __pycache__
 .ipynb_checkpoints
 *.RData
 madrid/.RDataTmp
+.virtual_documents
