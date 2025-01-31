@@ -60,7 +60,7 @@ headers = {
     'Accept': 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br, zstd',
-    'Authorization': 'Bearer 679b955ca250de0e040eb492|822135c9633467919aae35a53d315dab',
+    'Authorization': 'Bearer 679b955ca250de0e040eb492|e1b7e5dc06c36e552031a86c989903e1',
     'Content-Type': 'application/json;charset=utf-8',
     'Origin': 'https://weathermap.netatmo.com',
     'Connection': 'keep-alive',
@@ -72,49 +72,53 @@ headers = {
 }
 
 start_date = date(2023, 6, 1)
-end_date = date(2023, 6, 7)
+end_date = date(2023, 9, 1)
 delta = timedelta(days=1)
 
-device_id = '70:ee:50:7a:8d:66'
-module_id = '02:00:00:7a:82:20'
+stations = pd.read_csv('netatmo_stations.csv', delimiter=',')
+for index, station in stations.iterrows():
+    print('Processing station', index)
 
-current_date = start_date
-rows = []
-while current_date <= end_date:
-    print('Processing:', current_date.strftime('%d/%m/%Y'))
-    date_begin = time.mktime(datetime.strptime(f'{current_date} 00:00:00', '%Y-%m-%d %H:%M:%S').timetuple())
-    date_end = time.mktime(datetime.strptime(f'{current_date} 23:59:00', '%Y-%m-%d %H:%M:%S').timetuple())
-    current_date += delta
+    device_id = station['device_id']
+    module_id = station['module_id']
 
-    payload = {
-        'date_begin': str(date_begin),
-        'date_end': str(date_end),
-        'scale': 'max',
-        'device_id': device_id,
-        'module_id': module_id,
-        'type': 'temperature'
-    }
+    current_date = start_date
+    rows = []
+    while current_date <= end_date:
+        print('Processing:', current_date.strftime('%d/%m/%Y'))
+        date_begin = time.mktime(datetime.strptime(f'{current_date} 00:00:00', '%Y-%m-%d %H:%M:%S').timetuple())
+        date_end = time.mktime(datetime.strptime(f'{current_date} 23:59:00', '%Y-%m-%d %H:%M:%S').timetuple())
+        current_date += delta
 
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-    except:
-        pass
+        payload = {
+            'date_begin': str(date_begin),
+            'date_end': str(date_end),
+            'scale': 'max',
+            'device_id': device_id,
+            'module_id': module_id,
+            'type': 'temperature'
+        }
 
-    #print(response.status_code)
-    #print(response.text)
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+        except:
+            pass
 
-    # Parse JSON response
-    parsed_data = json.loads(response.text)
+        #print(response.status_code)
+        #print(response.text)
 
-    for entry in parsed_data['body']:
-        timestamp = entry['beg_time']
-        temp = entry['value'][0][0]  # First temperature value
-        date_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-        date, t = date_time.split(' ')
-        rows.append({'date': date, 'time': t, 'temp': temp})
+        # Parse JSON response
+        parsed_data = json.loads(response.text)
 
-# Create DataFrame
-df = pd.DataFrame(rows)
+        for entry in parsed_data['body']:
+            timestamp = entry['beg_time']
+            temp = entry['value'][0][0]  # First temperature value
+            date_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+            date, t = date_time.split(' ')
+            rows.append({'date': date, 'time': t, 'temp': temp})
 
-# Export to CSV
-df.to_csv(device_id + '.csv', index=False)
+    # Create DataFrame
+    df = pd.DataFrame(rows)
+
+    # Export to CSV
+    df.to_csv('stations/' + device_id + '.csv', index=False)
