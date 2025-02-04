@@ -10,7 +10,7 @@ library(caret)
 library(readr)
 
 # Load the CSV file into a dataframe
-data <- read_csv("~/University/uhi/zaragoza/data.csv")
+data <- read_csv("~/University/uhi/zaragoza/data_netatmo.csv")
 #View(data)
 
 # Check the first few rows of the dataset
@@ -32,7 +32,6 @@ points <- data.frame(
   svf = data$svf,
   imd = data$imd,
   ndvi = data$ndvi,
-  swir2 = data$swir2,
   temp_diff = data$temp_diff
 )
 
@@ -119,7 +118,7 @@ kriging_result <- krige(
 raster_output <- raster(kriging_result)
 
 # Save the output as a GeoTIFF file
-output_path <- "~/University/uhi/zaragoza/interpolation_SVF+IMD+NDVI.tif"
+output_path <- "~/University/uhi/zaragoza/interpolation_SVF+IMD+NDVI_netatmo.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
 #cat("Interpolated raster saved at:", output_path, "\n")
