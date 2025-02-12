@@ -26,15 +26,14 @@ def ndti(red_path: str, green_path: str, output_path: str, show_result=False) ->
 
     # Save result
     params = src.meta
-    print(params)
     params.update(count = 1, dtype='float32')
 
     with rasterio.open(output_path, 'w', **params) as dest:
             dest.write_band(1, ndti)
 
 if __name__ == '__main__':
-    red_path = os.path.abspath(os.path.join(os.getcwd(), '../data/red_average.tif'))
-    green_path = os.path.abspath(os.path.join(os.getcwd(), '../data/green_average.tif'))
-    output_path = os.path.abspath(os.path.join(os.getcwd(), '../data/rasters/Madrid_ETRS89_NDTI.tif'))
+    red_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/red_average_zaragoza.tif'))
+    green_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/green_average_zaragoza.tif'))
+    output_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/rasters/Zaragoza_ETRS89_NDTI.tif'))
 
     ndti(red_path, green_path, output_path)

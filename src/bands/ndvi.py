@@ -26,7 +26,6 @@ def ndvi(red_path: str, nir_path: str, output_path: str, show_result=False) -> N
 
     # Save result
     params = src.meta
-    print(params)
     params.update(count = 1, dtype='float32')
 
     with rasterio.open(output_path, 'w', **params) as dest:

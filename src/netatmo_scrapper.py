@@ -4,7 +4,7 @@ import pandas as pd
 import time
 from datetime import date, datetime, timezone, timedelta
 
-'''url = 'https://api.netatmo.com/api/getpublicdata'
+url = 'https://api.netatmo.com/api/getpublicdata'
 params = {
     'lat_ne': '41.715690885740585',
     'lon_ne': '-0.7947666087344643',
@@ -49,7 +49,10 @@ df = pd.DataFrame(rows)
 # Export to CSV
 df.to_csv('netatmo_stations.csv', index=False)
 
-print('Netatmo stations saved')'''
+print('Netatmo stations saved')
+
+
+###
 
 
 url = 'https://app.netatmo.net/api/getmeasure'
@@ -101,21 +104,18 @@ for index, station in stations.iterrows():
 
         try:
             response = requests.post(url, headers=headers, json=payload)
+
+            # Parse JSON response
+            parsed_data = json.loads(response.text)
+
+            for entry in parsed_data['body']:
+                timestamp = entry['beg_time']
+                temp = entry['value'][0][0]  # First temperature value
+                date_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+                date, t = date_time.split(' ')
+                rows.append({'date': date, 'time': t, 'temp': temp})
         except:
             pass
-
-        #print(response.status_code)
-        #print(response.text)
-
-        # Parse JSON response
-        parsed_data = json.loads(response.text)
-
-        for entry in parsed_data['body']:
-            timestamp = entry['beg_time']
-            temp = entry['value'][0][0]  # First temperature value
-            date_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-            date, t = date_time.split(' ')
-            rows.append({'date': date, 'time': t, 'temp': temp})
 
     # Create DataFrame
     df = pd.DataFrame(rows)

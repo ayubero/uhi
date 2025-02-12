@@ -1,7 +1,5 @@
-import os, glob
-import numpy as np
+import os
 import rasterio
-import matplotlib.pyplot as plt
 
 # Go to directory with study area rasters
 raster_path = os.path.abspath(os.path.join(os.getcwd(), '../data/sentinel'))
