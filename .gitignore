@@ -14,3 +14,6 @@ __pycache__
 madrid/.RDataTmp
 .virtual_documents
 *.csv
+*.png
+*.zip
+*.jp2
