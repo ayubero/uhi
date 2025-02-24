@@ -5,7 +5,7 @@ import os
 def gli(red_path: str, green_path: str, blue_path: str, output_path: str, show_result=False) -> None:
     '''
     Computes the Green Leaf Index (GLI) as proposed by Louhaichi et al., 2001
-    NBAI = ((Green - Red) + (Green - Blue)) / (2*Green + Red + Blue)
+    GLI = (2*Green - Red - Blue) / (2*Green + Red + Blue)
     '''
 
     # Open rasters
@@ -17,7 +17,7 @@ def gli(red_path: str, green_path: str, blue_path: str, output_path: str, show_r
         blue = src.read(1)
 
     # Compute GLI
-    nbai = ((green - red) + (green - blue)) / (2*green + red + blue)
+    nbai = (2*green - red - blue) / (2*green + red + blue)
 
     if show_result:
         plt.figure(figsize=(10, 10))

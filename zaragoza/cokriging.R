@@ -1,119 +1,70 @@
-# Install required packages if not already installed
-install.packages(c("gstat", "raster", "caret", "gridExtra", "sp"))
-
-# Load libraries
-library(gstat)
-library(raster)
-library(caret)
-library(readr)
-library(gridExtra)
+# Load necessary packages
+library(tidyverse)
 library(sp)
+library(raster)
+library(gstat)
+library(automap)
 
 # Load the CSV file into a dataframe
 data <- read_csv("~/University/uhi/zaragoza/data.csv")
 
 # Check correlation between temp_diff and covariates
 cor(data$temp_diff, data$svf, use = "complete.obs")
-cor(data$temp_diff, data$imd, use = "complete.obs")
-cor(data$temp_diff, data$ndvi, use = "complete.obs")
+cor(data$temp_diff, data$nbai, use = "complete.obs")
+cor(data$temp_diff, data$gli, use = "complete.obs")
 
-# Load raster datasets
-ndvi_raster <- raster("~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI_scaled.tif")
+# Load raster datasets (updated variables)
+gli_raster <- raster("~/University/uhi/data/rasters/Zaragoza_ETRS89_GLI.tif")
 svf_raster <- raster("~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor_scaled.tif")
-imd_raster <- raster("~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif")
+nbai_raster <- raster("~/University/uhi/data/rasters/Zaragoza_ETRS89_NBAI.tif")
 
 # Verify rasters are loaded correctly
-plot(ndvi_raster, main = "NDVI Raster")
+plot(gli_raster, main = "GLI Raster")
 plot(svf_raster, main = "SVF Raster")
-plot(imd_raster, main = "IMD Raster")
+plot(nbai_raster, main = "NBAI Raster")
 
-# Prepare spatial data frame
-points <- data.frame(
-  lon = data$lon,
-  lat = data$lat,
-  svf = data$svf,
-  imd = data$imd,
-  ndvi = data$ndvi,
-  temp_diff = data$temp_diff
-)
+# Define a formula for cokriging (temp_diff is the primary variable)
+formula <- temp_diff ~ svf + nbai + gli
 
-# Convert the data frame to a spatial data frame
-coordinates(points) <- ~lon + lat
-proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
+data$lon <- as.numeric(as.character(data$lon))
+data$lat <- as.numeric(as.character(data$lat))
 
-# Extract raster values at point locations
-points$ndvi_raster <- extract(ndvi_raster, points)
-points$svf_raster <- extract(svf_raster, points)
-points$imd_raster <- extract(imd_raster, points)
+# Set as spatial data
+coordinates(data) <- ~ lon + lat
+proj4string(data) <- CRS(proj4string(gli_raster))  # Match raster CRS
 
-# Check correlations
-cor(points$temp_diff, points$ndvi_raster, use = "complete.obs")
-cor(points$temp_diff, points$svf_raster, use = "complete.obs")
-cor(points$temp_diff, points$imd_raster, use = "complete.obs")
+# Fit variograms for each variable using automap
+v_temp_diff <- autofitVariogram(temp_diff ~ 1, data)
+v_svf <- autofitVariogram(svf ~ 1, data)
+v_nbai <- autofitVariogram(nbai ~ 1, data)
+v_gli <- autofitVariogram(gli ~ 1, data)
 
-# Define variograms for each variable
-variogram_temp <- variogram(temp_diff ~ 1, data = points, cloud=F)
-model_temp <- vgm(1.5, "Exp", 1, 0.5)
-model_fit_temp <- fit.variogram(variogram_temp, model_temp)
+# Define a gstat object for cokriging
+g <- gstat(NULL, id = "temp_diff", formula = temp_diff ~ 1, data = data, model = v_temp_diff$var_model)
+g <- gstat(g, id = "svf", formula = svf ~ 1, data = data, model = v_svf$var_model)
+g <- gstat(g, id = "nbai", formula = nbai ~ 1, data = data, model = v_nbai$var_model)
+g <- gstat(g, id = "gli", formula = gli ~ 1, data = data, model = v_gli$var_model)
 
-variogram_ndvi <- variogram(ndvi_raster ~ 1, data = points, cloud=F)
-model_ndvi <- vgm(1.5, "Exp", 1, 0.5)
-model_fit_ndvi <- fit.variogram(variogram_ndvi, model_ndvi)
+# Compute cross-variograms automatically
+g <- gstat(g, id = "temp_diff", model = v_temp_diff$var_model, fill.all = TRUE)
 
-variogram_svf <- variogram(svf_raster ~ 1, data = points, cloud=F)
-model_svf <- vgm(1.5, "Exp", 1, 0.5)
-model_fit_svf <- fit.variogram(variogram_svf, model_svf)
+# Create a prediction grid based on raster extent
+grid <- spTransform(grid, CRS(proj4string(svf_raster)))
 
-variogram_imd <- variogram(imd_raster ~ 1, data = points, cloud=F)
-model_imd <- vgm(1.5, "Exp", 1, 0.5)
-model_fit_imd <- fit.variogram(variogram_imd, model_imd)
+# Ensure the grid is spatial and matches the raster CRS
+coordinates(grid) <- ~x + y
+proj4string(grid) <- proj4string(svf_raster)
 
-# Display variograms
-grid.arrange(plot(variogram_temp, pl=F, model=model_fit_temp, main= "Temp Diff Variogram"),
-             plot(variogram_ndvi, pl=F, model=model_fit_ndvi, main="NDVI Variogram"),
-             plot(variogram_svf, pl=F, model=model_fit_svf, main="SVF Variogram"),
-             plot(variogram_imd, pl=F, model=model_fit_imd, main="IMD Variogram"),
-             ncol=2)
+# Extract values from rasters
+grid$svf <- extract(svf_raster, grid)
+grid$nbai <- extract(nbai_raster, grid)
+grid$gli <- extract(gli_raster, grid)
 
-# Define gstat object for cokriging
-g <- gstat(NULL, id = "temp", form = temp_diff ~ 1, data=points)
-g <- gstat(g, id = "ndvi_raster", form = ndvi_raster ~ 1, data=points)
-g <- gstat(g, id = "svf_raster", form = svf_raster ~ 1, data=points)
-g <- gstat(g, id = "imd_raster", form = imd_raster ~ 1, data=points)
+# Perform cokriging prediction
+ck_result <- predict(g, grid)
 
-# Compute cross-variogram
-cross_variogram <- variogram(g)
-plot(cross_variogram, pl=F)
+# Convert results into a raster
+ck_raster <- rasterFromXYZ(as.data.frame(ck_result)[, c("x", "y", "temp_diff.pred")])
 
-# Fit variogram models
-g <- gstat(g, id = "temp_diff", model = model_fit_temp, fill.all=T)
-g <- fit.lmc(cross_variogram, g)
-
-# Print fitted model details
-print(g)
-
-# Plot fitted variogram
-plot(variogram(g), model=g$model)
-
-# Create a regular grid covering the study area
-bbox <- extent(min(data$lon), max(data$lon), min(data$lat), max(data$lat))
-grid_res <- 0.001  # Adjust resolution as needed
-grid <- expand.grid(
-  lon = seq(bbox@xmin, bbox@xmax, by = grid_res),
-  lat = seq(bbox@ymin, bbox@ymax, by = grid_res)
-)
-
-# Convert to SpatialPixelsDataFrame
-coordinates(grid) <- ~lon + lat
-gridded(grid) <- TRUE
-proj4string(grid) <- CRS("+proj=longlat +datum=WGS84")
-
-# Predict using co-kriging
-CK <- predict(g, grid)
-
-# Convert prediction to raster and plot
-CK_raster <- raster(CK)
-plot(CK_raster, main = "Cokriged Prediction (Temp Diff)")
-
-# Save raster output
-writeRaster(CK_raster, filename = "~/University/uhi/kriged_temp_diff.tif", format = "GTiff", overwrite=TRUE)
+# Plot the cokriging prediction
+plot(ck_raster, main = "Cokriging Prediction of Temperature Difference")

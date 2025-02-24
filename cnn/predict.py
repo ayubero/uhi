@@ -101,7 +101,7 @@ weight_mask = create_weight_mask(patch_size)
 # Visualize the mask
 plt.imshow(weight_mask, cmap="viridis")
 plt.colorbar()
-plt.title("2D Weight Mask")
+#plt.title("2D Weight Mask")
 plt.show()
 
 # Load the checkpoint
@@ -143,9 +143,6 @@ for i in range(0, height - patch_size + 1, stride):
         # Apply weight mask and add to result
         result[i:i + patch_size, j:j + patch_size] += prediction_np * weight_mask
         weights[i:i + patch_size, j:j + patch_size] += weight_mask
-
-# Reconstruct the global image from patches
-
 
 # Export result
 params = src.meta

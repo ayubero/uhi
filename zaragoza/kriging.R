@@ -54,15 +54,15 @@ str(points)
 #variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 # svf + gli + nbai + ndti + mdt + lst
 fitted_variogram <- fit.variogram(
-  variogram(temp_diff ~ svf + gli + nbai + ndti, data = points),
+  variogram(temp_diff ~ svf + gli + nbai + ndti + mdt + lst, data = points),
   model = vgm("Sph")
 )
 print(fitted_variogram)
-plot(variogram(temp_diff ~ svf + gli + nbai + ndti, data = points), fitted_variogram)
+plot(variogram(temp_diff ~ svf + gli + nbai + ndti + mdt + lst, data = points), fitted_variogram)
 
 # Perform cross-validation to evaluate the model's predictive performance
 cv_results <- krige.cv(
-  formula = temp_diff ~ svf + gli + nbai + ndti, # Specify the response variable and covariates
+  formula = temp_diff ~ svf + gli + nbai + ndti + mdt + lst, # Specify the response variable and covariates
   locations = points, # Spatial data points
   model = fitted_variogram, # Variogram model
   nfold = 10 # Number of folds for cross-validation
@@ -124,7 +124,7 @@ proj4string(points) <- proj4string(template)
 
 # Perform kriging interpolation
 kriging_result <- krige(
-  formula = temp_diff ~ svf + gli + nbai + ndti,  # Interpolation formula
+  formula = temp_diff ~ svf + gli + nbai + ndti + mdt + lst,  # Interpolation formula
   locations = points,                     # Spatial data points
   newdata = covariates_spdf,              # Raster stack as spatial grid
   model = fitted_variogram                 # Variogram model

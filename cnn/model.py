@@ -16,11 +16,39 @@ class UNet(nn.Module):
         self.bottleneck = self.conv_block(512, 1024)
         
         # Decoder
-        self.dec4 = self.upconv_block(1024 + 512, 512) # Concatenated bottleneck and e4
+        '''self.dec4 = self.upconv_block(1024 + 512, 512) # Concatenated bottleneck and e4
         self.dec3 = self.upconv_block(512 + 256, 256) # Concatenated decoder output and e3
         self.dec2 = self.upconv_block(256 + 128, 128) # Concatenated decoder output and e2
-        self.dec1 = self.upconv_block(128 + 64, 64)
-        
+        self.dec1 = self.upconv_block(128 + 64, 64)'''
+        #self.dec4 = self.upconv_block(1536, 512) # (1024 from bottleneck, 512 from e4)
+        self.dec4 = nn.Sequential(
+            nn.Conv2d(1536, 512, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(512, 512, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+        #self.dec3 = self.upconv_block(768, 256)
+        self.dec3 = nn.Sequential(
+            nn.Conv2d(768, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+        #self.dec2 = self.upconv_block(384, 128)
+        self.dec2 = nn.Sequential(
+            nn.Conv2d(384, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+        #self.dec1 = self.upconv_block(128 + 64, 64)
+        self.dec1 = nn.Sequential(
+            nn.Conv2d(192, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+                
         # Final Output
         self.final_conv = nn.Conv2d(64, out_channels, kernel_size=1)
     
@@ -37,7 +65,7 @@ class UNet(nn.Module):
         '''Upconvolutional block: Upsample -> Conv2d'''
         return nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2),
-            self.conv_block(out_channels + out_channels, out_channels) # Match concatenated channels
+            self.conv_block(out_channels + out_channels // 2, out_channels)  # Match concatenated channels
         )
 
     

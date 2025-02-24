@@ -17,7 +17,7 @@ response = wcs.getCoverage(
     identifier=coverage_id,
     bbox=bbox,
     format=format,
-    crs="urn:ogc:def:crs:EPSG::4258"  # ETRS89-geo
+    crs="urn:ogc:def:crs:EPSG::4258" # ETRS89-geo
 )
 
 # Save the TIFF file

@@ -5,7 +5,7 @@ import os
 def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, show_result=False) -> None:
     '''
     Computes the Normalized Built-up Area Index (NBAI) as proposed by Waqar et al., 2012
-    NBAI = ((SWIR2 - SWIR1) / Green) / ((SWIR2 + SWIR1) / Green)
+    NBAI = (SWIR2 - (SWIR1 / Green)) / (SWIR2 + (SWIR1 / Green))
     '''
 
     # Open rasters
@@ -17,7 +17,7 @@ def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, sh
         green = src.read(1)
 
     # Compute NBAI
-    nbai = ((swir2 - swir1) / green) / ((swir2 + swir1) / green)
+    nbai = (swir2 - (swir1 / green)) / (swir2 + (swir1 / green))
 
     if show_result:
         plt.figure(figsize=(10, 10))
