@@ -34,9 +34,9 @@ def gli(red_path: str, green_path: str, blue_path: str, output_path: str, show_r
             dest.write_band(1, nbai)
 
 if __name__ == '__main__':
-    red_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/red_average_zaragoza.tif'))
-    green_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/green_average_zaragoza.tif'))
-    blue_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/blue_average_zaragoza.tif'))
-    output_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/rasters/Zaragoza_ETRS89_GLI.tif'))
+    red_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/red_average_madrid.tif'))
+    green_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/green_average_madrid.tif'))
+    blue_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/blue_average_madrid.tif'))
+    output_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/rasters/Madrid_ETRS89_GLI.tif'))
 
     gli(red_path, green_path, blue_path, output_path)

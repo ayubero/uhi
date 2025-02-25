@@ -34,9 +34,9 @@ def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, sh
             dest.write_band(1, nbai)
 
 if __name__ == '__main__':
-    swir1_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/red_average_zaragoza.tif'))
-    swir2_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/nir_average_zaragoza.tif'))
-    green_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/green_average_zaragoza.tif'))
-    output_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/rasters/Zaragoza_ETRS89_NBAI.tif'))
+    swir1_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/red_average_madrid.tif'))
+    swir2_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/nir_average_madrid.tif'))
+    green_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/green_average_madrid.tif'))
+    output_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/rasters/Madrid_ETRS89_NBAI.tif'))
 
     nbai(swir1_path, swir2_path, green_path, output_path)

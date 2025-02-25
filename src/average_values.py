@@ -21,7 +21,7 @@ def average_values(input_folder: str, output_path: str, band_index: int, show_re
     source: rasterio.io.DatasetReader
     for raster_name in list:
         with rasterio.open(raster_name) as src:
-            no_data_value = src.nodata
+            no_data_value = src.nodata if src.nodata is not None else -9999
             band = src.read(band_index)
             dataset.append(band)
             source = src
@@ -60,6 +60,6 @@ def average_values(input_folder: str, output_path: str, band_index: int, show_re
         dest.write_band(1, average_band)
 
 if __name__ == '__main__':
-    rasters_folder = os.path.abspath(os.path.join(os.getcwd(), '../data/sentinel/zaragoza'))
-    output_name = os.path.abspath(os.path.join(os.getcwd(), '../blue_average_zaragoza.tif'))
-    average_values(rasters_folder, output_name, 2)
+    rasters_folder = os.path.abspath(os.path.join(os.getcwd(), '../data/sentinel/madrid'))
+    output_name = os.path.abspath(os.path.join(os.getcwd(), '../data/swir2_average_madrid.tif'))
+    average_values(rasters_folder, output_name, 12)

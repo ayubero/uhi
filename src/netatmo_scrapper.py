@@ -5,24 +5,35 @@ import time
 from datetime import date, datetime, timezone, timedelta
 
 url = 'https://api.netatmo.com/api/getpublicdata'
-params = {
+# Coordinates in WGS84
+# Zaragoza
+'''params = {
     'lat_ne': '41.715690885740585',
     'lon_ne': '-0.7947666087344643',
     'lat_sw': '41.58243097520002',
     'lon_sw': '-0.981554438392556',
     'required_data': 'temperature',
     'filter': 'false'
-}
+}'''
+# Madrid
+'''params = {
+    'lat_ne': '40.5388896',
+    'lon_ne': '-3.5650026',
+    'lat_sw': '40.3320266',
+    'lon_sw': '-3.8313769',
+    'required_data': 'temperature',
+    'filter': 'false'
+}'''
 
-headers = {
+'''headers = {
     'Accept': 'application/json',
-    'Authorization': 'Bearer 679b955ca250de0e040eb492|58c127707faa13c689be8f9bf2b862be'
+    'Authorization': 'Bearer 679b955ca250de0e040eb492|3743eedfb2fb9ab56ea641169dbcb959'
 }
 
 response = requests.get(url, headers=headers, params=params)
 
 print(response.status_code)
-#print(response.text)
+print(response.text)
 
 # Parse JSON response
 parsed_data = json.loads(response.text)
@@ -49,7 +60,7 @@ df = pd.DataFrame(rows)
 # Export to CSV
 df.to_csv('netatmo_stations.csv', index=False)
 
-print('Netatmo stations saved')
+print('Netatmo stations saved')'''
 
 
 ###
@@ -63,7 +74,7 @@ headers = {
     'Accept': 'application/json, text/plain, */*',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br, zstd',
-    'Authorization': 'Bearer 679b955ca250de0e040eb492|e1b7e5dc06c36e552031a86c989903e1',
+    'Authorization': 'Bearer 679b955ca250de0e040eb492|c1a1755fcc73c9ae4f2a44fb5a24984a',
     'Content-Type': 'application/json;charset=utf-8',
     'Origin': 'https://weathermap.netatmo.com',
     'Connection': 'keep-alive',
@@ -106,11 +117,12 @@ for index, station in stations.iterrows():
             response = requests.post(url, headers=headers, json=payload)
 
             # Parse JSON response
+            #print(response.text)
             parsed_data = json.loads(response.text)
 
             for entry in parsed_data['body']:
                 timestamp = entry['beg_time']
-                temp = entry['value'][0][0]  # First temperature value
+                temp = entry['value'][0][0] # First temperature value
                 date_time = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
                 date, t = date_time.split(' ')
                 rows.append({'date': date, 'time': t, 'temp': temp})
@@ -120,5 +132,8 @@ for index, station in stations.iterrows():
     # Create DataFrame
     df = pd.DataFrame(rows)
 
-    # Export to CSV
-    df.to_csv('stations/' + device_id + '.csv', index=False)
+    # Check if the DataFrame is not empty before saving
+    if not df.empty:
+        df.to_csv('stations/' + device_id + '.csv', index=False)
+    else:
+        print('Station', index, 'has no data for the selected period')

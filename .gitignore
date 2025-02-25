@@ -11,6 +11,7 @@ __pycache__
 .env
 .ipynb_checkpoints
 *.RData
+*.Rhistory
 madrid/.RDataTmp
 .virtual_documents
 *.csv
