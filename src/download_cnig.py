@@ -1,25 +1,35 @@
 from owslib.wcs import WebCoverageService
+import rasterio
+from rasterio.plot import show
+
+# Define the WCS URL
+wcs_url = 'https://servicios.idee.es/wcs-inspire/mdt?request=GetCoverage&bbox=219815.8558928584,4127174.1479494297,250214.58515687028,4157574.328919708&service=WCS&version=1.0.0&coverage=Elevacion25830_5&interpolationMethod=bilinear&crs=EPSG:25830&format=ArcGrid&width=6080&height=6080'
 
 # Connect to the WCS service
-wcs_url = "https://servicios.idee.es/wcs-inspire/mdt?service=WCS&version=2.0.1"
-wcs = WebCoverageService(wcs_url)
+wcs = WebCoverageService(wcs_url, version='2.0.1')
 
-# Get coverage details
-coverage_id = "Elevacion4258_5"
-coverage = wcs.contents[coverage_id]
+# List available coverages
+print(list(wcs.contents))  
 
-# Define the bounding box and format
-bbox = (-19.00, 27.00, 5.00, 44.00)
-format = "image/tiff"
+coverage_id = '15' #'Elevacion25830_5'
 
-# Download the coverage
+bbox = (
+    -6.158884001205189,  # minx (lon_sw)
+    37.24901003514264,   # miny (lat_sw)
+    -5.826827983975654,  # maxx (lon_ne)
+    37.53134457442109    # maxy (lat_ne)
+)
+
 response = wcs.getCoverage(
     identifier=coverage_id,
     bbox=bbox,
-    format=format,
-    crs="urn:ogc:def:crs:EPSG::4258" # ETRS89-geo
+    crs="EPSG:4326",
+    format="image/tiff",
+    width=500,  # Adjust for resolution
+    height=500
 )
 
-# Save the TIFF file
-with open("output.tiff", "wb") as f:
-    f.write(response.read())
+# Save the response as a file
+output_file = "mdt_spain.tif"
+with open(output_file, 'wb') as file:
+    file.write(response.read())
