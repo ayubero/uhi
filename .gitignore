@@ -20,3 +20,7 @@ madrid/.RDataTmp
 *.jp2
 *.xml
 *.tar
+*.prj
+*.mgrd
+*.sgrd
+*.sdat

@@ -1,5 +1,6 @@
 import rasterio
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, show_result=False) -> None:
@@ -16,9 +17,13 @@ def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, sh
     with rasterio.open(green_path) as src:
         green = src.read(1)
 
-    # Compute NBAI
-    nbai = (swir2 - (swir1 / green)) / (swir2 + (swir1 / green))
+    # Compute the ratio with np.divide() to avoid division by zero
+    ratio = np.divide(swir1, green, where=(green != 0), out=np.zeros_like(swir1, dtype=float))
 
+    # Compute NBAI
+    denominator = swir2 + ratio
+    nbai = np.divide(swir2 - ratio, denominator, where=(denominator != 0), out=np.zeros_like(swir2, dtype=float))
+    
     if show_result:
         plt.figure(figsize=(10, 10))
         plt.imshow(nbai, cmap='RdYlGn')
@@ -28,6 +33,7 @@ def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, sh
 
     # Save result
     params = src.meta
+    params.update(nodata=np.nan)
     params.update(count = 1, dtype='float32')
 
     with rasterio.open(output_path, 'w', **params) as dest:

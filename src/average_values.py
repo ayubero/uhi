@@ -9,10 +9,10 @@ def average_values(input_folder: str, output_path: str, band_index: int, show_re
     '''
 
     # Go to directory with study area rasters
-    os.chdir(input_folder)
+    #os.chdir(input_folder)
 
     # List all .tif files
-    list = glob.glob('*.tif')
+    list = glob.glob(input_folder + '/*.tif')
 
     # Read and stack all bands
     dataset = []

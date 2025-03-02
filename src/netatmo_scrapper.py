@@ -37,7 +37,7 @@ def get_stations(token, lat_ne, lon_ne, lat_sw, lon_sw, output_folder):
 
     headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer {token}'
+        'Authorization': f'Bearer {token}'
     }
 
     response = requests.get(url, headers=headers, params=params)
@@ -67,19 +67,26 @@ def get_stations(token, lat_ne, lon_ne, lat_sw, lon_sw, output_folder):
     # Create a DataFrame
     df = pd.DataFrame(rows)
 
+    # Make sure the output folder exists
+    os.makedirs(output_folder, exist_ok=True)
+
     # Export to CSV
-    df.to_csv('netatmo_stations.csv', index=False)
+    output_path = os.path.join(output_folder, 'netatmo_stations.csv')
+    df.to_csv(output_path, index=False)
 
     print('Netatmo stations saved')
 
 def get_station_data(
         token, 
-        output_folder = 'stations', 
+        station_folder = 'stations', 
         start_date = date(2023, 6, 1), 
         end_date = date(2023, 9, 1)
     ):
+    # Make sure the output folder exists
+    os.makedirs(station_folder, exist_ok=True)
+
     # Get the list of CSV files (without the .csv extension)
-    existing_files = [f.replace('.csv', '') for f in os.listdir(output_folder) if f.endswith('.csv')]
+    existing_files = [f.replace('.csv', '') for f in os.listdir(station_folder) if f.endswith('.csv')]
 
     url = 'https://app.netatmo.net/api/getmeasure'
 
@@ -89,7 +96,7 @@ def get_station_data(
         'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate, br, zstd',
-        'Authorization': 'Bearer {token}',
+        'Authorization': f'Bearer {token}',
         'Content-Type': 'application/json;charset=utf-8',
         'Origin': 'https://weathermap.netatmo.com',
         'Connection': 'keep-alive',
@@ -102,7 +109,8 @@ def get_station_data(
 
     delta = timedelta(days=1)
 
-    stations = pd.read_csv('netatmo_stations.csv', delimiter=',')
+    station_csv_path = os.path.join(station_folder, 'netatmo_stations.csv')
+    stations = pd.read_csv(station_csv_path, delimiter=',')
     for index, station in stations.iterrows():
         print('Processing station', index)
 
@@ -150,6 +158,7 @@ def get_station_data(
 
             # Check if the DataFrame is not empty before saving
             if not df.empty:
-                df.to_csv(output_folder + '/' + device_id + '.csv', index=False)
+                output_csv_path = os.path.join(station_folder, device_id + '.csv')
+                df.to_csv(output_csv_path, index=False)
             else:
                 print('Station', index, 'has no data for the selected period')
