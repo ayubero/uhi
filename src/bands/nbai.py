@@ -17,12 +17,29 @@ def nbai(swir1_path: str, swir2_path: str, green_path: str, output_path: str, sh
     with rasterio.open(green_path) as src:
         green = src.read(1)
 
-    # Compute the ratio with np.divide() to avoid division by zero
-    ratio = np.divide(swir1, green, where=(green != 0), out=np.zeros_like(swir1, dtype=float))
+    # Convert arrays to float
+    swir1 = swir1.astype(float)
+    swir2 = swir2.astype(float)
+    green = green.astype(float)
+
+    '''mask = (swir1 == 0) | (swir2 == 0) | (green == 0)
+    swir1[mask] = np.nan
+    swir2[mask] = np.nan
+    green[mask] = np.nan
+
+    # Compute the ratio
+    ratio = swir1 / green
 
     # Compute NBAI
+    nbai = (swir2 - ratio) / (swir2 + ratio)'''
+    
+    # Compute Ratio
+    ratio = np.divide(swir1, green, where=(green != 0), out=np.zeros_like(swir1))
     denominator = swir2 + ratio
-    nbai = np.divide(swir2 - ratio, denominator, where=(denominator != 0), out=np.zeros_like(swir2, dtype=float))
+
+    # Compute NBAI
+    nbai = np.divide(swir2 - ratio, denominator, where=(denominator != 0), out=np.zeros_like(swir2))
+    nbai[denominator == 0] = np.nan
     
     if show_result:
         plt.figure(figsize=(10, 10))
