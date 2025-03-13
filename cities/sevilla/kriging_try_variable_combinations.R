@@ -13,7 +13,7 @@ interpolate_combination <- function(vars, points, covariates_spdf, fitted_variog
   # Fit variogram
   fitted_variogram <- fit.variogram(
     variogram(formula, data = points),
-    model <- vgm(psill = 0.1, model = "Sph", range = 100, nugget = 0.05)
+    vgm(psill = 0.5, model = "Sph", range = 200, nugget = 0.05)
   )
   
   # Cross-validation
@@ -65,9 +65,8 @@ cor(data$temp_diff, data$mdt, use = "complete.obs")
 cor(data$temp_diff, data$lst, use = "complete.obs")
 
 # Standardize covariates to have mean 0 and standard deviation 1
-#data$imd <- scale(data$imd)
-#data$svf <- scale(data$svf)
-#data$ndvi <- scale(data$ndvi)
+data$svf <- scale(data$svf)
+data$gli <- scale(data$gli)
 
 points <- data.frame(
   lon = data$lon,
@@ -91,12 +90,12 @@ proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
 str(points)
 
 # Paths to the .tif files
-svf_path <- "rasters/SVF.tif"
+svf_path <- "rasters/SVF_scaled.tif"
 gli_path <- "rasters/GLI.tif"
 nbai_path <- "rasters/NBAI.tif"
 ndti_path <- "rasters/NDTI.tif"
-mdt_path <- "rasters/MDT.tif"
-lst_path <- "rasters/LST.tif"
+mdt_path <- "rasters/MDT_normalized.tif"
+lst_path <- "rasters/LST_normalized.tif"
 
 # Load the .tif files as raster layers
 svf_raster <- raster(svf_path)

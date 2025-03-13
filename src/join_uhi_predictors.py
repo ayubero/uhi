@@ -5,16 +5,20 @@ from rasterio.merge import merge
 # Input TIF file paths
 '''tif_files = [
     'Zaragoza_ETRS89_Sky_View_Factor.tif', 
-    'Zaragoza_ETRS89_Imperviousness_Density_normalized.tif', 
-    'Zaragoza_ETRS89_NDVI.tif'
+    'Zaragoza_ETRS89_GLI.tif'
 ]
 data_dir = '../data/rasters/'''
-tif_files = [
+'''tif_files = [
     'Madrid_ETR89_SVF.tif', 
     'Madrid_ETR89_IMD_normalized.tif', 
     'Madrid_ETRS89_NDVI.tif'
 ]
-data_dir = '../madrid/rasters/'
+data_dir = '../madrid/rasters/'''
+tif_files = [
+    'SVF.tif', 
+    'GLI.tif'
+]
+data_dir = '../cities/valencia/rasters/'
 
 # Open the reference raster (high resolution)
 with rasterio.open(data_dir + tif_files[0]) as ref_raster:
@@ -50,42 +54,11 @@ for tif in tif_files:
 
         resampled_bands.append(data)
 
-output_file = data_dir + 'predictors_skf_imd_ndvi.tif'
-ref_profile.update(count=3)  # Set 3 bands
+output_file = data_dir + 'predictors_svf_gli.tif'
+ref_profile.update(count=2) # Set N bands
 
 with rasterio.open(output_file, 'w', **ref_profile) as dst:
     for i, band in enumerate(resampled_bands, start=1):
         dst.write(band, i)
 
-print(f'3-band raster saved to {output_file}')
-
-'''# Target variable also needs the same resolution
-target_path = data_dir + 'interpolation_SVF+IMD+NDVI.tif'
-with rasterio.open(target_path) as src:
-    if (
-        src.width != ref_width or 
-        src.height != ref_height or 
-        src.transform != ref_transform
-    ):
-        # Resample to match the reference raster
-        data = src.read(
-            1, 
-            out_shape=(ref_height, ref_width),
-            resampling=Resampling.bilinear,  # You can use other methods, e.g., nearest
-        )
-        # Update transform for resampled data
-        transform = ref_transform
-    else:
-        # No resampling needed
-        data = src.read(1)
-        transform = src.transform
-
-    band = data
-
-output_file = data_dir + 'interpolation_SVF+IMD+NDVI_scaled.tif'
-ref_profile.update(count=1)
-
-with rasterio.open(output_file, 'w', **ref_profile) as dst:
-    dst.write(band, 1)
-
-print(f'Target raster saved to {output_file}')'''
+print(f'Multi-band raster saved to {output_file}')

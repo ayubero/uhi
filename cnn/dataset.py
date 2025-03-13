@@ -12,6 +12,6 @@ class RasterPatchDataset(Dataset):
         return len(self.input_files)
 
     def __getitem__(self, idx):
-        input_patch = np.load(self.input_files[idx])  # Shape: (3, patch_size, patch_size)
-        target_patch = np.load(self.target_files[idx])  # Shape: (patch_size, patch_size)
+        input_patch = np.load(self.input_files[idx]) # Shape: (N, patch_size, patch_size)
+        target_patch = np.load(self.target_files[idx]) # Shape: (patch_size, patch_size)
         return torch.tensor(input_patch, dtype=torch.float32), torch.tensor(target_patch, dtype=torch.float32)

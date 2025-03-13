@@ -9,6 +9,8 @@ from src.average_values import average_values
 from src.bands.gli import gli
 from src.bands.nbai import nbai
 from src.bands.ndti import ndti
+from src.normalize import normalize
+from src.resample import resample
 
 def list_folders(directory):
     '''List all folders in the given directory.'''
@@ -102,13 +104,13 @@ if __name__ == '__main__':
             extent_wgs84, extent_etrs89 = get_extent(study_area_shapefile_path)
 
             # Convert DEM to SVF
-            #dem_path = os.path.join(raster_folder, 'MDS.tif')
-            #dem_to_svf(dem_path, raster_folder)
+            '''dem_path = os.path.join(raster_folder, 'MDS.tif')
+            dem_to_svf(dem_path, raster_folder)'''
 
             # Download Netatmo data
-            #token = '679b955ca250de0e040eb492|af139a78741792c9320be1292af57786'
-            #get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
-            #get_station_data(token, stations_folder, date(2023, 6, 1), date(2023, 9, 1))
+            '''token = '679b955ca250de0e040eb492|08018c396cb3e8f04395d502ade81832'
+            get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
+            get_station_data(token, stations_folder, date(2023, 6, 1), date(2023, 9, 1))'''
 
             # Process sentinel variables
             '''sentinel_folder = os.path.join(raster_folder, 'sentinel')
@@ -132,19 +134,26 @@ if __name__ == '__main__':
                 get_variable_path(raster_folder, 'green'),
                 get_variable_path(raster_folder, 'blue'),
                 os.path.join(raster_folder, 'GLI.tif')
-            )'''
+            )
             nbai(
                 get_variable_path(raster_folder, 'swir1'),
                 get_variable_path(raster_folder, 'swir2'),
                 get_variable_path(raster_folder, 'green'),
-                os.path.join(raster_folder, 'NBAI.tif'),
-                True
+                os.path.join(raster_folder, 'NBAI.tif')
             )
-            '''ndti(
+            ndti(
                 get_variable_path(raster_folder, 'red'),
                 get_variable_path(raster_folder, 'green'),
                 os.path.join(raster_folder, 'NDTI.tif')
-            )'''
+            )
+            normalize(os.path.join(raster_folder, 'MDT.tif'))
+            normalize(os.path.join(raster_folder, 'LST.tif'))'''
+            resample(os.path.join(raster_folder, 'SVF.tif'), 100)
+            resample(os.path.join(raster_folder, 'GLI.tif'), 100)
+            resample(os.path.join(raster_folder, 'NBAI.tif'), 100)
+            resample(os.path.join(raster_folder, 'NDTI.tif'), 100)
+            resample(os.path.join(raster_folder, 'MDT_normalized.tif'), 100)
+            resample(os.path.join(raster_folder, 'LST_normalized.tif'), 100)
 
     else:
         print('Invalid directory path.')

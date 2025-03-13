@@ -1,12 +1,43 @@
 from dotenv import load_dotenv
 from rasterio.enums import Resampling
 from rasterio.mask import mask
+from rasterio.warp import calculate_default_transform, reproject, Resampling
 import fiona
+from fiona.transform import transform_geom
 import requests
 import shutil
 import boto3
 import os, glob
 import rasterio
+
+def reproject_raster(input_file, output_file, target_crs='EPSG:25830', nodata=-1):
+    with rasterio.open(input_file) as src:
+        transform, width, height = calculate_default_transform(
+            src.crs, target_crs, src.width, src.height, *src.bounds
+        )
+
+        kwargs = src.meta.copy()
+        kwargs.update({
+            'crs': target_crs,
+            'transform': transform,
+            'width': width,
+            'height': height,
+            'nodata': nodata
+        })
+
+        with rasterio.open(output_file, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=target_crs,
+                    resampling=Resampling.bilinear  # You can use nearest or cubic depending on your data
+                )
+
+    print(f'Reprojected raster saved to: {output_file}')
 
 # Read and resample raster
 def read_resample(path, scale):
@@ -93,6 +124,13 @@ def crop(file_path, output_path, shapefile):
         shapes_crs = shapefile.crs
 
     with rasterio.open(name_S2) as src:
+        '''print("Raster CRS:", src.crs)
+        print("Shapefile CRS:", shapes_crs)'''
+        if shapes_crs != src.crs:
+            print('Reprojecting shapefile to match raster CRS...')
+            shapes = [transform_geom(shapes_crs, src.crs, geom) for geom in shapes]
+        else:
+            print('CRS match!')
         out_image, out_transform = mask(src, shapes, nodata=nodata, crop=True)
         out_meta = src.meta
         
@@ -109,6 +147,9 @@ def crop(file_path, output_path, shapefile):
     output_file = name_S2.replace('CompleteTile.tif', 'StudyArea.tif')
     with rasterio.open(output_file, 'w', **out_meta) as dest:
         dest.write(out_image)
+
+    # Reproject to EPSG:25830
+    reproject_raster(output_file, output_file)
 
     # Remove the file, leaving just the study area
     try:
@@ -196,7 +237,6 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
 
     # Shapefile mask
     mask = os.path.join(target_path, study_area_shapefile)
-    print(mask)
 
     for product in response.json()['value']:
         # Get S3 path
@@ -220,6 +260,7 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
                     try:
                         crop(img_path, output_path, mask)
                     except Exception as e:
+                        
                         print(f'An error occurred: {e}')
                     remove_folder(img_path)
             print('---')
@@ -232,4 +273,5 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
 #https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq 'SENTINEL-2' and Attributes/OData.CSC.DoubleAttribute/any(att:att/Name eq 'cloudCover' and att/OData.CSC.DoubleAttribute/Value le 30.00) and OData.CSC.Intersects(area=geography'SRID=4326;POINT(-0.88482371152898 41.648336063076243)') and ContentDate/Start gt 2023-04-01T00:00:00.000Z and ContentDate/Start lt 2023-04-30T00:00:00.000Z&$orderby=ContentDate/Start desc
 
 if __name__ == '__main__':
-    download('../../cities/sevilla/rasters', '2023-08-01', '2023-08-31', '-5.994072', '37.392529', 30.00, '../shapefiles/study_area.shp')
+    #download('../../cities/oviedo/rasters', '2023-06-01', '2023-06-30', '-5.84476', '43.36029', 10.00, '../shapefiles/study_area.shp'), 
+    download('../../cities/valencia/rasters', '2023-08-01', '2023-08-31', '-0.375000', '39.466667', 10.00, '../shapefiles/study_area.shp')

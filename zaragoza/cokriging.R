@@ -35,15 +35,10 @@ v_svf <- autofitVariogram(svf ~ 1, data)
 v_nbai <- autofitVariogram(nbai ~ 1, data)
 v_gli <- autofitVariogram(gli ~ 1, data)
 
-# Define a gstat object
-#g <- gstat(NULL, id = "temp_diff", formula = temp_diff ~ 1, data = data, model = v_temp_diff$var_model)
-#g <- gstat(g, id = "svf", formula = svf ~ 1, data = data, model = v_svf$var_model)
-#g <- gstat(g, id = "nbai", formula = nbai ~ 1, data = data, model = v_nbai$var_model)
-#g <- gstat(g, id = "gli", formula = gli ~ 1, data = data, model = v_gli$var_model)
-
 g <- gstat(NULL, id = "temp_diff", formula = temp_diff ~ 1, data = data, model = v_temp_diff$var_model)
 g <- gstat(g, id = "svf", formula = svf ~ 1, data = data, model = v_svf$var_model)
 g <- fit.lmc(variogram(g), g, model = vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.5))
+
 # Create a prediction grid based on raster extent
 grids <- rasterToPoints(svf_raster, spatial = TRUE)
 
@@ -61,8 +56,17 @@ grids <- grids[!is.na(grids$svf) & !is.na(grids$nbai) & !is.na(grids$gli), ]
 # Perform cokriging prediction
 ck_result <- predict(g, grids)
 
-# Convert results into a raster
-ck_raster <- rasterFromXYZ(as.data.frame(ck_result)[, c("x", "y", "temp_diff.pred")])
+str(ck_result)
+
+# Convert ck_result to a data frame
+ck_df <- as.data.frame(ck_result)
+
+# Extract the relevant columns and rename them
+ck_df <- ck_df[, c("coords.x1", "coords.x2", "temp_diff.pred")]
+colnames(ck_df) <- c("x", "y", "z")  # Rename columns to x, y, z
+
+# Convert the data frame to a raster
+ck_raster <- rasterFromXYZ(ck_df)
 
 # Plot the cokriging prediction
 plot(ck_raster, main = "Cokriging Prediction of Temperature Difference")

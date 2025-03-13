@@ -24,3 +24,7 @@ madrid/.RDataTmp
 *.mgrd
 *.sgrd
 *.sdat
+*.cpg
+*.dbf
+*.shp
+*.shx

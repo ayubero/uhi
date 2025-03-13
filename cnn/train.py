@@ -32,8 +32,8 @@ test_dataset = RasterPatchDataset(os.path.join(output_dir, 'test'))
 test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
 # Initialize model, loss, and optimizer
-#model = CNN().to(device)
-model = UNet(in_channels=3, out_channels=1).to(device)
+model = CNN().to(device)
+#model = UNet(in_channels=3, out_channels=1).to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-2)
 

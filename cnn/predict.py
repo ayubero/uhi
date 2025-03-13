@@ -7,8 +7,8 @@ from scipy.signal import triang
 import matplotlib.pyplot as plt
 from model import CNN
 
-input_path = './data/raw/madrid_predictors_skf_imd_ndvi.tif'
-output_path = './data/madrid_result.tif'
+input_path = './data/raw/oviedo_predictors_svf_gli.tif'
+output_path = './data/oviedo_result.tif'
 model_path = 'checkpoint.pth.tar'
 
 with rasterio.open(input_path) as src:
@@ -99,9 +99,9 @@ weight_mask = create_weight_mask(patch_size)
 
 
 # Visualize the mask
-plt.imshow(weight_mask, cmap="viridis")
+plt.imshow(weight_mask, cmap='viridis')
 plt.colorbar()
-#plt.title("2D Weight Mask")
+#plt.title('2D Weight Mask')
 plt.show()
 
 # Load the checkpoint
@@ -113,7 +113,7 @@ for i in range(0, height - patch_size + 1, stride):
     for j in range(0, width - patch_size + 1, stride):
         patch = torch.from_numpy(input_img[:, i:i+patch_size, j:j+patch_size])
         patch = patch.unsqueeze(0) # Adds a batch dimension
-        print(patch.shape)
+        #print(patch.shape)
         with torch.no_grad():
             prediction = model(patch)
 
