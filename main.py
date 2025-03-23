@@ -107,10 +107,11 @@ if __name__ == '__main__':
             '''dem_path = os.path.join(raster_folder, 'MDS.tif')
             dem_to_svf(dem_path, raster_folder)'''
 
-            # Download Netatmo data
-            '''token = '679b955ca250de0e040eb492|08018c396cb3e8f04395d502ade81832'
+            '''# Download Netatmo data
+            token = '679b955ca250de0e040eb492|949b82156478188bbb44f8918f7295c3'
             get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
-            get_station_data(token, stations_folder, date(2023, 6, 1), date(2023, 9, 1))'''
+            get_station_data(token, stations_folder, date(2023, 6, 1), date(2023, 9, 1))
+            #get_station_data(token, stations_folder, date(2023, 12, 1), date(2024, 3, 1)) # Dates for Oviedo in winter'''
 
             # Process sentinel variables
             '''sentinel_folder = os.path.join(raster_folder, 'sentinel')

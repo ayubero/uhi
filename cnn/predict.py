@@ -3,12 +3,17 @@ import rasterio
 from rasterio.transform import from_origin
 import torch
 import numpy as np
-from scipy.signal import triang
+from scipy.signal.windows import triang
 import matplotlib.pyplot as plt
+from omegaconf import OmegaConf
+
 from model import CNN
 
+# Load the YAML config file
+config = OmegaConf.load('../config.yaml')
+
 input_path = './data/raw/oviedo_predictors_svf_gli.tif'
-output_path = './data/oviedo_result.tif'
+output_path = './data/oviedo_cnn_result.tif'
 model_path = 'checkpoint.pth.tar'
 
 with rasterio.open(input_path) as src:
@@ -19,49 +24,15 @@ with rasterio.open(input_path) as src:
 pixel_size_x, pixel_size_y = src.transform.a, -src.transform.e
 origin_x, origin_y = src.transform.c, src.transform.f
 
-'''# Smooth blending parameters
-window_size = 160
-nb_classes = 10
-
-predictions_smooth = predict_img_with_smooth_windowing(
-    input_img,
-    window_size=window_size,
-    subdivisions=2, # Minimal amount of overlap for windowing. Must be an even number.
-    nb_classes=nb_classes,
-    pred_func=(
-        lambda img_batch_subdiv: model.predict(img_batch_subdiv)
-    )
-)'''
-
 # Patch and overlap parameters
-patch_size = 64
+patch_size = config.cnn.patch_size
 overlap = patch_size // 4 # 25% overlap
 stride = patch_size - overlap
 _, height, width = input_img.shape
-'''patch_size = 64
-stride = patch_size
-_, height, width = input_img.shape
-result = np.zeros((height, width))'''
 
 # Initialize result and weights arrays
 result = np.zeros((height, width), dtype=np.float32)
 weights = np.zeros((height, width), dtype=np.float32)
-
-# Create a 2D weight mask for smooth blending
-'''def create_weight_mask(patch_size, overlap):
-    mask = np.ones((patch_size, patch_size), dtype=np.float32)
-    blend_range = overlap
-    # Linear decay for edge blending
-    for i in range(blend_range):
-        decay = (i + 1) / blend_range
-        mask[i, :] *= decay  # Top edge
-        mask[-i - 1, :] *= decay  # Bottom edge
-        mask[:, i] *= decay  # Left edge
-        mask[:, -i - 1] *= decay  # Right edge
-    return mask
-    
-weight_mask = create_weight_mask(patch_size, overlap)
-'''
 
 def _spline_window(window_size, power=2):
     '''
@@ -97,13 +68,6 @@ def create_weight_mask(window_size, power=2):
 
 weight_mask = create_weight_mask(patch_size)
 
-
-# Visualize the mask
-plt.imshow(weight_mask, cmap='viridis')
-plt.colorbar()
-#plt.title('2D Weight Mask')
-plt.show()
-
 # Load the checkpoint
 model = CNN()
 model.load_state_dict(torch.load(model_path, weights_only=True))
@@ -117,26 +81,6 @@ for i in range(0, height - patch_size + 1, stride):
         with torch.no_grad():
             prediction = model(patch)
 
-        '''# Update metadata
-        params = src.meta.copy()
-        params.update({
-            'width': patch_size,
-            'height': patch_size,
-            'transform': from_origin(
-                origin_x + j * pixel_size_x,
-                origin_y - i * pixel_size_y,
-                pixel_size_x,
-                -pixel_size_y
-            ),
-            'count': 1,  # Output has a single band
-            'dtype': 'float32'
-        })
-
-        output_path = f'./data/results/patch_{i}_{j}.tif'
-        with rasterio.open(output_path, 'w', **params) as dest:
-            dest.write(prediction.squeeze().numpy(), 1)'''
-        #result[i:i+patch_size, j:j+patch_size] = prediction
-
         # Convert prediction to numpy and squeeze extra dimensions
         prediction_np = prediction.squeeze().numpy()
         
@@ -147,23 +91,9 @@ for i in range(0, height - patch_size + 1, stride):
 # Export result
 params = src.meta
 params.update(count = 1, dtype='float32')
-'''with rasterio.open(output_path, 'w', **params) as dest:
-    dest.write_band(1, result)'''
 
 # Normalize result by weights to handle overlap
 result /= np.maximum(weights, 1e-6)  # Avoid division by zero
-
-'''# Save final output
-output_transform = from_origin(origin_x, origin_y, pixel_size_x, -pixel_size_y)
-params = src.meta.copy()
-params.update({
-    'driver': 'GTiff',
-    'height': result.shape[0],
-    'width': result.shape[1],
-    'transform': output_transform,
-    'count': 1,  # Single band
-    'dtype': 'float32'
-})'''
 
 with rasterio.open(output_path, 'w', **params) as dest:
     dest.write(result, 1)

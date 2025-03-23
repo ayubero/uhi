@@ -1,3 +1,4 @@
+library(automap)
 library(gstat)
 library(sp)
 library(raster)
@@ -10,11 +11,35 @@ interpolate_combination <- function(vars, points, covariates_spdf, fitted_variog
   formula <- as.formula(paste("temp_diff ~", paste(vars, collapse = " + ")))
   print(paste("Interpolating with:", formula))
   
+  # Check original temp_diff stats
+  cat("Original temp_diff range:", range(data$temp_diff), "\n")
+  cat("Original temp_diff mean:", mean(data$temp_diff, na.rm = TRUE), "\n")
+  cat("Original temp_diff sd:", sd(data$temp_diff, na.rm = TRUE), "\n")
+  
+  # Scale temp_diff and store mean & sd for inverse transformation
+  temp_diff_mean <- mean(data$temp_diff, na.rm = TRUE)
+  temp_diff_sd <- sd(data$temp_diff, na.rm = TRUE)
+  #data$temp_diff <- scale(data$temp_diff)
+  data$temp_diff <- (data$temp_diff - temp_diff_mean) / temp_diff_sd
+  
+  # Check scaled temp_diff stats
+  cat("Scaled temp_diff range:", range(data$temp_diff), "\n")
+  cat("Scaled temp_diff mean:", mean(data$temp_diff, na.rm = TRUE), "\n")
+  cat("Scaled temp_diff sd:", sd(data$temp_diff, na.rm = TRUE), "\n")
+  
   # Fit variogram
-  fitted_variogram <- fit.variogram(
-    variogram(formula, data = points),
-    vgm(psill = 0.5, model = "Sph", range = 200, nugget = 0.05)
+  variogram_fit <- autofitVariogram(
+    formula,
+    input_data = points,
+    model = c("Sph", "Exp", "Gau", "Ste"), # Possible variogram models to test
+    verbose = TRUE
   )
+  fitted_variogram <- variogram_fit$var_model
+  #fitted_variogram <- fit.variogram(
+  #  variogram(formula, data = points),
+  #  vgm(psill = 0.5, model = "Exp", range = 100, nugget = 0.1)
+  #)
+  #plot(fitted_variogram)
   
   # Cross-validation
   cv_results <- krige.cv(
@@ -35,6 +60,12 @@ interpolate_combination <- function(vars, points, covariates_spdf, fitted_variog
     newdata = covariates_spdf,
     model = fitted_variogram
   )
+  
+  # Convert back to original scale
+  #kriging_result$var1.pred <- kriging_result$var1.pred * temp_diff_sd + temp_diff_mean
+  
+  # Ensure inverse-transformed range
+  cat("Inverse transformed temp_diff range:", range(kriging_result$var1.pred), "\n")
   
   # Convert to raster
   raster_output <- raster(kriging_result)
@@ -67,6 +98,10 @@ cor(data$temp_diff, data$lst, use = "complete.obs")
 # Standardize covariates to have mean 0 and standard deviation 1
 data$svf <- scale(data$svf)
 data$gli <- scale(data$gli)
+data$nbai <- scale(data$nbai)
+data$ndti <- scale(data$ndti)
+data$mdt <- scale(data$mdt)
+data$lst <- scale(data$lst)
 
 points <- data.frame(
   lon = data$lon,
@@ -132,7 +167,11 @@ output_dir <- "results"
 for (k in 1:length(covariates)) {
   combs <- combn(covariates, k, simplify = FALSE)
   for (comb in combs) {
-    interpolate_combination(comb, points, covariates_spdf, fitted_variogram, output_dir)
+    print(comb)
+    if (identical(comb, c("svf", "gli"))) {
+      interpolate_combination(comb, points, covariates_spdf, fitted_variogram, output_dir)
+    }
   }
 }
 
+#interpolate_combination(c("svf", "gli"), covariates_spdf, fitted_variogram, output_dir)

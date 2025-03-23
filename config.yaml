@@ -1,0 +1,7 @@
+# Configuration
+cnn:
+    patch_size: 64
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 10
+

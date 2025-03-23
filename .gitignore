@@ -9,6 +9,7 @@ data/rasters
 Sentinel-2
 __pycache__
 .env
+.venv
 .ipynb_checkpoints
 *.RData
 *.Rhistory
