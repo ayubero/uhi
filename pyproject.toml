@@ -18,6 +18,7 @@ requests = "^2.32.3"
 scikit-learn = "^1.5.1"
 torch = "^2.6.0"
 scipy = "^1.15.2"
+mkdocs = "^1.6.1"
 
 
 [build-system]

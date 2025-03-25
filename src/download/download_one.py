@@ -1,4 +1,4 @@
-from utils.preprocessing import crop
+#from utils.preprocessing import crop
 from dotenv import load_dotenv
 import requests
 import shutil
