@@ -7,3 +7,6 @@ cnn:
     batch_size: 16
     epochs: 30
 
+copernicus-s3:
+    access_key: ${oc.env:ACCESS_KEY}
+    secret_access_key: ${oc.env:SECRET_ACCESS_KEY}
