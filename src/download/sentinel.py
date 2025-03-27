@@ -7,7 +7,7 @@ from fiona.transform import transform_geom
 import requests
 import shutil
 import boto3
-import os, glob
+import os, glob, sys
 import rasterio
 
 def reproject_raster(input_file, output_file, target_crs='EPSG:25830', nodata=-1):
@@ -223,7 +223,7 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
 
     if response.status_code != 200:
         print('Failed to retrieve data')
-        os.exit(1)
+        sys.exit(1)
 
     data = response.json()
 
@@ -257,12 +257,12 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
                     img_path = os.path.join(root, 'IMG_DATA')
                     print('Preprocessing', img_path)
                     # Crop file to study area
-                    try:
+                    '''try:
                         crop(img_path, output_path, mask)
                     except Exception as e:
                         
                         print(f'An error occurred: {e}')
-                    remove_folder(img_path)
+                    remove_folder(img_path)'''
             print('---')
 
     # Remove download folder
@@ -273,5 +273,5 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
 #https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq 'SENTINEL-2' and Attributes/OData.CSC.DoubleAttribute/any(att:att/Name eq 'cloudCover' and att/OData.CSC.DoubleAttribute/Value le 30.00) and OData.CSC.Intersects(area=geography'SRID=4326;POINT(-0.88482371152898 41.648336063076243)') and ContentDate/Start gt 2023-04-01T00:00:00.000Z and ContentDate/Start lt 2023-04-30T00:00:00.000Z&$orderby=ContentDate/Start desc
 
 if __name__ == '__main__':
-    download('../../cities/oviedo_winter/rasters', '2024-02-01', '2024-02-29', '-5.84476', '43.36029', 10.00, '../shapefiles/study_area.shp'), 
+    download('../../data/oviedo_winter/rasters', '2023-12-01', '2023-12-31', '-5.84476', '43.36029', 10.00, '../shapefiles/study_area.shp'), 
     #download('../../cities/valencia/rasters', '2023-08-01', '2023-08-31', '-0.375000', '39.466667', 10.00, '../shapefiles/study_area.shp')
