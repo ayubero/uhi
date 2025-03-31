@@ -21,14 +21,15 @@ cor(data$temp_diff, data$mdt, use = "complete.obs")
 cor(data$temp_diff, data$lst, use = "complete.obs")
 
 # Standardize covariates to have mean 0 and standard deviation 1
-#data$svf <- scale(data$svf)
-#data$gli <- scale(data$gli)
+data$svf <- scale(data$svf)
+data$gli <- scale(data$gli)
+#data$temp_diff <- scale(data$temp_diff)
 temp_diff_mean <- mean(data$temp_diff)
 temp_diff_sd <- sd(data$temp_diff)
 #data$temp_diff <- (data$temp_diff - temp_diff_mean) / temp_diff_sd
 # Min-Max Normalization
-temp_diff_min <- min(data$temp_diff)
-temp_diff_max <- max(data$temp_diff)
+#temp_diff_min <- min(data$temp_diff)
+#temp_diff_max <- max(data$temp_diff)
 #data$temp_diff <- (data$temp_diff - temp_diff_min) / (temp_diff_max - temp_diff_min)
 
 points <- data.frame(

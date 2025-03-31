@@ -1,1 +1,3 @@
-site_name: My Docs
+site_name: UHI Detector Documentation
+theme:
+    name: readthedocs

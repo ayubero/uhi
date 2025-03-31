@@ -1,7 +1,7 @@
 # Install packages
-install.packages("gstat")
-install.packages("raster")
-install.packages("caret")
+#install.packages("gstat")
+#install.packages("raster")
+#install.packages("caret")
 
 # Load libraries
 library(gstat)
@@ -10,7 +10,7 @@ library(caret)
 library(readr)
 
 # Load the CSV file into a dataframe
-data <- read_csv("~/University/uhi/zaragoza/data_netatmo.csv")
+data <- read_csv("data_netatmo.csv")
 #View(data)
 
 # Check the first few rows of the dataset
@@ -82,15 +82,15 @@ cat("RMSE:", rmse, "\n")
 
 # --- INTERPOLATION ---
 # Paths to the .tif files
-svf_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Sky_View_Factor.tif"
-gli_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_GLI.tif"
-nbai_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NBAI.tif"
-ndti_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDTI.tif"
-mdt_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_MDT05_normalized.tif"
-lst_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_LST_LC09_20230815_normalized.tif"
-#imd_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
-#ndvi_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
-#swir2_path <- "~/University/uhi/data/rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
+svf_path <- "rasters/Zaragoza_ETRS89_Sky_View_Factor.tif"
+gli_path <- "rasters/Zaragoza_ETRS89_GLI.tif"
+nbai_path <- "rasters/Zaragoza_ETRS89_NBAI.tif"
+ndti_path <- "rasters/Zaragoza_ETRS89_NDTI.tif"
+mdt_path <- "rasters/Zaragoza_ETRS89_MDT05_normalized.tif"
+lst_path <- "rasters/Zaragoza_ETRS89_LST_LC09_20230815_normalized.tif"
+#imd_path <- "rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
+#ndvi_path <- "rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
+#swir2_path <- "rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
 
 # Load the .tif files as raster layers
 svf_raster <- raster(svf_path)
@@ -134,8 +134,22 @@ kriging_result <- krige(
 raster_output <- raster(kriging_result)
 
 # Save the output as a GeoTIFF file
-output_path <- "~/University/uhi/zaragoza/interpolation_svf_gli.tif"
+output_path <- "results/interpolation_svf_gli.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
 #cat("Interpolated raster saved at:", output_path, "\n")
+
+# kriging_result$var1.pred contains the predicted values (interpolated result)
+# kriging_result$var1.var contains the variance (uncertainty in squared units)
+kriging_uncertainty <- sqrt(kriging_result$var1.var)
+
+# Create a raster with the same extent, resolution, and CRS as the original covariates stack (or kriging result)
+raster_uncertainty <- raster(covariates_spdf)  # This creates a raster object with the same spatial properties
+
+# Assign the uncertainty values to the raster
+values(raster_uncertainty) <- kriging_uncertainty
+
+# Save the uncertainty raster as a GeoTIFF file
+uncertainty_output_path <- "results/uncertainty.tif"
+writeRaster(raster_uncertainty, filename = uncertainty_output_path, format = "GTiff", overwrite = TRUE)
 

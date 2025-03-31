@@ -128,3 +128,32 @@ writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite =
 
 #cat("Interpolated raster saved at:", output_path, "\n")
 
+# kriging_result$var1.pred contains the predicted values (interpolated result)
+# kriging_result$var1.var contains the variance (uncertainty in squared units)
+# Extract the variance (uncertainty in squared units) from the kriging result
+kriging_uncertainty <- sqrt(kriging_result$var1.var)
+
+# Create a raster with the same extent, resolution, and CRS as the original covariates stack (or kriging result)
+raster_uncertainty <- raster(covariates_spdf)  # This creates a raster object with the same spatial properties
+
+# Assign the uncertainty values to the raster
+values(raster_uncertainty) <- kriging_uncertainty
+
+# Save the uncertainty raster as a GeoTIFF file
+uncertainty_output_path <- "results/uncertainty.tif"
+writeRaster(raster_uncertainty, filename = uncertainty_output_path, format = "GTiff", overwrite = TRUE)
+
+# kriging_result$var1.pred contains the predicted values (interpolated result)
+# kriging_result$var1.var contains the variance (uncertainty in squared units)
+# Extract the variance (uncertainty in squared units) from the kriging result
+kriging_uncertainty <- sqrt(kriging_result$var1.var)
+
+# Create a raster with the same extent, resolution, and CRS as the original covariates stack (or kriging result)
+raster_uncertainty <- raster(covariates_spdf)  # This creates a raster object with the same spatial properties
+
+# Assign the uncertainty values to the raster
+values(raster_uncertainty) <- kriging_uncertainty
+
+# Save the uncertainty raster as a GeoTIFF file
+uncertainty_output_path <- "results/uncertainty.tif"
+writeRaster(raster_uncertainty, filename = uncertainty_output_path, format = "GTiff", overwrite = TRUE)

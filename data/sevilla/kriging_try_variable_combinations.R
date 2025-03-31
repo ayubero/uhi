@@ -19,17 +19,17 @@ interpolate_combination <- function(vars, points, covariates_spdf, fitted_variog
   # Z-score standardization
   temp_diff_mean <- mean(data$temp_diff)
   temp_diff_sd <- sd(data$temp_diff)
-  data$temp_diff_standardized <- (data$temp_diff - temp_diff_mean) / temp_diff_sd
+  #data$temp_diff_standardized <- (data$temp_diff - temp_diff_mean) / temp_diff_sd
   
   # Compute the variogram and fit the model
-  variogram_exp <- variogram(temp_diff_standardized ~ svf + gli, data = data)
+  variogram_exp <- variogram(data$temp_diff ~ svf + gli, data = data)
   variogram_fit <- fit.variogram(variogram_exp, model = vgm(psill = 0.6, "Sph", range = 0.3, nugget = 0.2))
   
   # Kriging with the standardized variable
-  kriging_result <- krige(temp_diff_standardized ~ svf + gli, data, prediction_grid, model = variogram_fit)
+  kriging_result <- krige(data$temp_diff ~ svf + gli, data, prediction_grid, model = variogram_fit)
   
   # Rescale predictions back to original scale
-  kriging_result$var1.pred <- kriging_result$var1.pred * temp_diff_sd + temp_diff_mean
+  #kriging_result$var1.pred <- kriging_result$var1.pred * temp_diff_sd + temp_diff_mean
   
   # Convert back to original scale
   #kriging_result$var1.pred <- kriging_result$var1.pred * temp_diff_sd + temp_diff_mean

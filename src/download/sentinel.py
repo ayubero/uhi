@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from rasterio.enums import Resampling
 from rasterio.mask import mask
 from rasterio.warp import calculate_default_transform, reproject, Resampling
+from rasterio.vrt import WarpedVRT
 import fiona
 from fiona.transform import transform_geom
 import requests
@@ -124,15 +125,44 @@ def crop(file_path, output_path, shapefile):
         shapes_crs = shapefile.crs
 
     with rasterio.open(name_S2) as src:
-        '''print("Raster CRS:", src.crs)
-        print("Shapefile CRS:", shapes_crs)'''
-        if shapes_crs != src.crs:
+        print('Raster CRS:', src.crs)
+        print('Shapefile CRS:', shapes_crs)
+        '''if shapes_crs != src.crs:
             print('Reprojecting shapefile to match raster CRS...')
             shapes = [transform_geom(shapes_crs, src.crs, geom) for geom in shapes]
         else:
             print('CRS match!')
         out_image, out_transform = mask(src, shapes, nodata=nodata, crop=True)
-        out_meta = src.meta
+        out_meta = src.meta'''
+        if shapes_crs != src.crs:
+            print('Reprojecting raster to match shapefile CRS...')
+
+            # Set up the in-memory reprojected raster
+            with WarpedVRT(
+                src,
+                crs=shapes_crs,
+                resampling=Resampling.nearest
+            ) as vrt:
+                out_image, out_transform = mask(vrt, shapes, nodata=nodata, crop=True)
+                out_meta = vrt.meta.copy()
+                out_meta.update({
+                    "driver": "GTiff",
+                    "height": out_image.shape[1],
+                    "width": out_image.shape[2],
+                    "transform": out_transform,
+                    "nodata": nodata
+                })
+        else:
+            print('CRS match!')
+            out_image, out_transform = mask(src, shapes, nodata=nodata, crop=True)
+            out_meta = src.meta.copy()
+            out_meta.update({
+                "driver": "GTiff",
+                "height": out_image.shape[1],
+                "width": out_image.shape[2],
+                "transform": out_transform,
+                "nodata": nodata
+            })
         
     out_image[out_image == src.nodata] = nodata
 
@@ -149,7 +179,7 @@ def crop(file_path, output_path, shapefile):
         dest.write(out_image)
 
     # Reproject to EPSG:25830
-    reproject_raster(output_file, output_file)
+    #reproject_raster(output_file, output_file)
 
     # Remove the file, leaving just the study area
     try:
@@ -257,21 +287,21 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
                     img_path = os.path.join(root, 'IMG_DATA')
                     print('Preprocessing', img_path)
                     # Crop file to study area
-                    '''try:
+                    try:
                         crop(img_path, output_path, mask)
                     except Exception as e:
                         
                         print(f'An error occurred: {e}')
-                    remove_folder(img_path)'''
+                    #remove_folder(img_path)
             print('---')
 
     # Remove download folder
     # Current directory is "data" folder
     os.chdir(target_path)
-    remove_folder(os.path.join(os.getcwd(), 'Sentinel-2'))
+    #remove_folder(os.path.join(os.getcwd(), 'Sentinel-2'))
 
 #https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq 'SENTINEL-2' and Attributes/OData.CSC.DoubleAttribute/any(att:att/Name eq 'cloudCover' and att/OData.CSC.DoubleAttribute/Value le 30.00) and OData.CSC.Intersects(area=geography'SRID=4326;POINT(-0.88482371152898 41.648336063076243)') and ContentDate/Start gt 2023-04-01T00:00:00.000Z and ContentDate/Start lt 2023-04-30T00:00:00.000Z&$orderby=ContentDate/Start desc
 
 if __name__ == '__main__':
     download('../../data/oviedo_winter/rasters', '2023-12-01', '2023-12-31', '-5.84476', '43.36029', 10.00, '../shapefiles/study_area.shp'), 
-    #download('../../cities/valencia/rasters', '2023-08-01', '2023-08-31', '-0.375000', '39.466667', 10.00, '../shapefiles/study_area.shp')
+    #download('../../data/valencia/rasters', '2023-11-01', '2023-11-30', '-0.375000', '39.466667', 10.00, '../shapefiles/study_area.shp')

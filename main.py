@@ -3,14 +3,15 @@ import geopandas as gpd
 from pyproj import CRS, Transformer
 from datetime import date
 
-from src.dem_to_svf import dem_to_svf
-from src.netatmo_scrapper import get_stations, get_station_data
-from src.average_values import average_values
-from src.bands.gli import gli
-from src.bands.nbai import nbai
-from src.bands.ndti import ndti
-from src.normalize import normalize
-from src.resample import resample
+from src.logger_setup import logger
+from src.utils.dem_to_svf import dem_to_svf
+from src.netatmo.netatmo_scrapper import get_stations, get_station_data
+from src.indices.gli import gli
+from src.indices.nbai import nbai
+from src.indices.ndti import ndti
+from src.utils.normalize import normalize
+from src.utils.resample import resample
+from src.utils.average_values import average_values
 
 def list_folders(directory):
     '''List all folders in the given directory.'''
@@ -90,7 +91,8 @@ def get_variable_path(raster_folder, band_name):
     return os.path.join(raster_folder, f'average_{band_name}.tif')
 
 if __name__ == '__main__':
-    directory = 'cities'
+    logger.info('Starting script...')
+    directory = 'data'
     if os.path.isdir(directory):
         selected_folder = choose_folder(directory)
         if selected_folder:
