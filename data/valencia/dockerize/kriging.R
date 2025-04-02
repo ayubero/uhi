@@ -4,31 +4,43 @@ library(raster)
 library(caret)
 library(readr)
 library(automap)
-library(ggpubr)
-library(spdep)
 
 # Load the CSV file into a dataframe
 data <- read_csv("data_netatmo.csv")
+#View(data)
 
 # Check the first few rows of the dataset
 head(data)
 
-# Remove rows with missing values
-data <- na.omit(data)
-
 # Check correlation
 cor(data$temp_diff, data$svf, use = "complete.obs")
 cor(data$temp_diff, data$gli, use = "complete.obs")
+cor(data$temp_diff, data$nbai, use = "complete.obs")
+cor(data$temp_diff, data$ndti, use = "complete.obs")
+cor(data$temp_diff, data$mdt, use = "complete.obs")
+cor(data$temp_diff, data$lst, use = "complete.obs")
 
 # Standardize covariates to have mean 0 and standard deviation 1
 data$svf <- scale(data$svf)
 data$gli <- scale(data$gli)
+#data$temp_diff <- scale(data$temp_diff)
+temp_diff_mean <- mean(data$temp_diff)
+temp_diff_sd <- sd(data$temp_diff)
+#data$temp_diff <- (data$temp_diff - temp_diff_mean) / temp_diff_sd
+# Min-Max Normalization
+#temp_diff_min <- min(data$temp_diff)
+#temp_diff_max <- max(data$temp_diff)
+#data$temp_diff <- (data$temp_diff - temp_diff_min) / (temp_diff_max - temp_diff_min)
 
 points <- data.frame(
   lon = data$lon,
   lat = data$lat,
   svf = data$svf,
   gli = data$gli,
+  nbai = data$nbai,
+  ndti = data$ndti,
+  mdt = data$mdt,
+  lst = data$lst,
   temp_diff = data$temp_diff
 )
 
@@ -42,6 +54,8 @@ proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
 str(points)
 
 # Define the variogram model
+#variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
+# svf + gli + nbai + ndti + mdt + lst
 variogram_fit <- autofitVariogram(
   temp_diff ~ svf + gli,
   input_data = points,
@@ -65,9 +79,15 @@ residuals <- cv_results$observed - cv_results$var1.pred
 rmse <- sqrt(mean(residuals^2))
 cat("RMSE:", rmse, "\n")
 
+# Plot observed vs. predicted
+#plot(cv_results$observed, kriging_result$var1.pred, 
+#     xlab = "Observed", ylab = "Predicted",
+#     main = paste("Observed vs Predicted (RMSE:", round(rmse, 2), ")"))
+#abline(0, 1, col = "red")
+
 # --- INTERPOLATION ---
 # Paths to the .tif files
-svf_path <- "rasters/SVF_scaled.tif"
+svf_path <- "rasters/SVF.tif"
 gli_path <- "rasters/GLI.tif"
 
 # Load the .tif files as raster layers
@@ -97,6 +117,9 @@ kriging_result <- krige(
   model = fitted_variogram                 # Variogram model
 )
 
+#kriging_result$var1.pred <- kriging_result$var1.pred * temp_diff_sd + temp_diff_mean
+#kriging_result$var1.pred <- kriging_result$var1.pred * (temp_diff_max - temp_diff_min) + temp_diff_min
+
 # Convert the kriging result back to a raster
 raster_output <- raster(kriging_result)
 
@@ -104,4 +127,5 @@ raster_output <- raster(kriging_result)
 output_path <- "results/svf_gli.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
+#cat("Interpolated raster saved at:", output_path, "\n")
 

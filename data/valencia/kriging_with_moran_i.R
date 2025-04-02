@@ -16,6 +16,61 @@ head(data)
 # Remove rows with missing values
 data <- na.omit(data)
 
+# Check for outliers in temp_diff
+ggplot(data, aes(y = temp_diff)) + 
+  geom_boxplot() + 
+  theme_minimal()
+
+# Check for trends in the data
+ggplot(data, aes(x = lon, y = lat, color = temp_diff)) +
+  geom_point(size = 2) + 
+  scale_color_gradient(low = "blue", high = "red") +
+  theme_minimal() +
+  ggtitle("Spatial Distribution of temp_diff")
+
+# Standardize covariates
+data$svf <- scale(data$svf)
+data$gli <- scale(data$gli)
+
+# Fit linear model (trend)
+lm_fit <- lm(temp_diff ~ svf + gli, data = data)
+residuals <- lm_fit$residuals
+
+# Check normality
+ggqqplot(residuals)  # Q-Q plot
+shapiro.test(residuals)  # Shapiro-Wilk test
+
+# Convert to spatial points
+coordinates(data) <- ~lon + lat
+proj4string(data) <- CRS("+proj=longlat +datum=WGS84")
+
+# Create spatial neighbors
+nb <- knn2nb(knearneigh(coordinates(data), k = 5))
+lw <- nb2listw(nb, style = "W")
+
+# Compute Moran's I
+moran.test(residuals, lw)
+
+# Create a spatial weights matrix using k-nearest neighbors (e.g., k = 5)
+coords <- coordinates(points)
+neighbors <- knearneigh(coords, k = 5)
+lw <- nb2listw(knn2nb(neighbors), style = "W")
+
+# Compute Local Moran’s I
+local_moran <- localmoran(points$temp_diff, lw)
+
+# Add the Local Moran’s I statistics to your dataset
+points$local_moran_i <- local_moran[,1]  # The statistic
+points$p_value <- local_moran[,5]  # p-value for significance
+
+# Define a threshold (p-value < 0.05 and High-Low or Low-High outliers)
+outlier_threshold <- 0.05
+outlier_points <- points$p_value < outlier_threshold & points$local_moran_i < 0
+cat(outlier_points)
+
+# Remove detected outliers from the dataset
+#points <- points[!outlier_points, ]
+
 # Check correlation
 cor(data$temp_diff, data$svf, use = "complete.obs")
 cor(data$temp_diff, data$gli, use = "complete.obs")
