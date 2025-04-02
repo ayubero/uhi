@@ -76,7 +76,6 @@ gli_raster <- raster(gli_path)
 
 # Ensure all rasters have the same CRS, extent, and resolution
 template <- svf_raster # Use one raster as the template
-
 gli_raster <- resample(gli_raster, template, method = "bilinear")
 
 # Stack the covariate rasters
