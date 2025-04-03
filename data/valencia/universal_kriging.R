@@ -100,7 +100,7 @@ kriging_result <- krige(
 raster_output <- raster(kriging_result)
 
 # Save the output as a GeoTIFF file
-output_path <- "results/svf_gli.tif"
+output_path <- "results/universal_kriging.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
 
