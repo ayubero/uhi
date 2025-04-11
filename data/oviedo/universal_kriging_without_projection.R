@@ -1,9 +1,13 @@
+# Install packages
+#install.packages("gstat")
+#install.packages("raster")
+#install.packages("caret")
+
 # Load libraries
 library(gstat)
 library(raster)
 library(caret)
 library(readr)
-library(automap)
 
 # Load the CSV file into a dataframe
 data <- read_csv("data_netatmo.csv")
@@ -21,15 +25,9 @@ cor(data$temp_diff, data$mdt, use = "complete.obs")
 cor(data$temp_diff, data$lst, use = "complete.obs")
 
 # Standardize covariates to have mean 0 and standard deviation 1
+#data$imd <- scale(data$imd)
 #data$svf <- scale(data$svf)
-#data$gli <- scale(data$gli)
-temp_diff_mean <- mean(data$temp_diff)
-temp_diff_sd <- sd(data$temp_diff)
-#data$temp_diff <- (data$temp_diff - temp_diff_mean) / temp_diff_sd
-# Min-Max Normalization
-temp_diff_min <- min(data$temp_diff)
-temp_diff_max <- max(data$temp_diff)
-#data$temp_diff <- (data$temp_diff - temp_diff_min) / (temp_diff_max - temp_diff_min)
+#data$ndvi <- scale(data$ndvi)
 
 points <- data.frame(
   lon = data$lon,
@@ -55,14 +53,12 @@ str(points)
 # Define the variogram model
 #variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 # svf + gli + nbai + ndti + mdt + lst
-variogram_fit <- autofitVariogram(
-  temp_diff ~ svf + gli,
-  input_data = points,
-  model = c("Sph", "Exp", "Gau", "Ste"), # Possible variogram models to test
-  verbose = TRUE
+fitted_variogram <- fit.variogram(
+  variogram(temp_diff ~ svf + gli, data = points),
+  model = vgm("Sph")
 )
-plot(variogram_fit)
-fitted_variogram <- variogram_fit$var_model
+print(fitted_variogram)
+plot(variogram(temp_diff ~ svf + gli, data = points), fitted_variogram)
 
 # Perform cross-validation to evaluate the model's predictive performance
 cv_results <- krige.cv(
@@ -88,6 +84,9 @@ cat("RMSE:", rmse, "\n")
 # Paths to the .tif files
 svf_path <- "rasters/SVF_scaled.tif"
 gli_path <- "rasters/GLI.tif"
+#imd_path <- "rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
+#ndvi_path <- "rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
+#swir2_path <- "rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
 
 # Load the .tif files as raster layers
 svf_raster <- raster(svf_path)
@@ -108,6 +107,9 @@ covariates_spdf <- as(covariates_stack, "SpatialPixelsDataFrame")
 # Ensure your spatial points have the same CRS
 proj4string(points) <- proj4string(template)
 
+# Define the variogram model
+#variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
+
 # Perform kriging interpolation
 kriging_result <- krige(
   formula = temp_diff ~ svf + gli,  # Interpolation formula
@@ -116,21 +118,17 @@ kriging_result <- krige(
   model = fitted_variogram                 # Variogram model
 )
 
-#kriging_result$var1.pred <- kriging_result$var1.pred * temp_diff_sd + temp_diff_mean
-#kriging_result$var1.pred <- kriging_result$var1.pred * (temp_diff_max - temp_diff_min) + temp_diff_min
-
 # Convert the kriging result back to a raster
 raster_output <- raster(kriging_result)
 
 # Save the output as a GeoTIFF file
-output_path <- "results/svf_gli.tif"
+output_path <- "results/universal_kriging_without_projection.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
 #cat("Interpolated raster saved at:", output_path, "\n")
 
 # kriging_result$var1.pred contains the predicted values (interpolated result)
 # kriging_result$var1.var contains the variance (uncertainty in squared units)
-# Extract the variance (uncertainty in squared units) from the kriging result
 kriging_uncertainty <- sqrt(kriging_result$var1.var)
 
 # Create a raster with the same extent, resolution, and CRS as the original covariates stack (or kriging result)
@@ -140,20 +138,6 @@ raster_uncertainty <- raster(covariates_spdf)  # This creates a raster object wi
 values(raster_uncertainty) <- kriging_uncertainty
 
 # Save the uncertainty raster as a GeoTIFF file
-uncertainty_output_path <- "results/uncertainty.tif"
+uncertainty_output_path <- "results/variances_without_projection.tif"
 writeRaster(raster_uncertainty, filename = uncertainty_output_path, format = "GTiff", overwrite = TRUE)
 
-# kriging_result$var1.pred contains the predicted values (interpolated result)
-# kriging_result$var1.var contains the variance (uncertainty in squared units)
-# Extract the variance (uncertainty in squared units) from the kriging result
-kriging_uncertainty <- sqrt(kriging_result$var1.var)
-
-# Create a raster with the same extent, resolution, and CRS as the original covariates stack (or kriging result)
-raster_uncertainty <- raster(covariates_spdf)  # This creates a raster object with the same spatial properties
-
-# Assign the uncertainty values to the raster
-values(raster_uncertainty) <- kriging_uncertainty
-
-# Save the uncertainty raster as a GeoTIFF file
-uncertainty_output_path <- "results/uncertainty.tif"
-writeRaster(raster_uncertainty, filename = uncertainty_output_path, format = "GTiff", overwrite = TRUE)

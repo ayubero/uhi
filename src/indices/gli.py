@@ -17,11 +17,11 @@ def gli(red_path: str, green_path: str, blue_path: str, output_path: str, show_r
         blue = src.read(1)
 
     # Compute GLI
-    nbai = (2*green - red - blue) / (2*green + red + blue)
+    gli = (2*green - red - blue) / (2*green + red + blue)
 
     if show_result:
         plt.figure(figsize=(10, 10))
-        plt.imshow(nbai, cmap='RdYlGn')
+        plt.imshow(gli, cmap='RdYlGn')
         plt.colorbar(label='GLI values')
         plt.title(f'GLI')
         plt.show()
@@ -31,7 +31,7 @@ def gli(red_path: str, green_path: str, blue_path: str, output_path: str, show_r
     params.update(count = 1, dtype='float32')
 
     with rasterio.open(output_path, 'w', **params) as dest:
-            dest.write_band(1, nbai)
+            dest.write_band(1, gli)
 
 if __name__ == '__main__':
     red_path = os.path.abspath(os.path.join(os.getcwd(), '../../data/red_average_madrid.tif'))

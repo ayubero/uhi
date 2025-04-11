@@ -272,3 +272,4 @@ writeRaster(residuals_raster, filename = "results/kriged_residuals_only.tif",
             format = "GTiff", overwrite = TRUE)
 
 cat("Analysis complete. Check the output rasters.\n")
+

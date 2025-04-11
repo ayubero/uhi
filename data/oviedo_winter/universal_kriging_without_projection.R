@@ -82,12 +82,8 @@ cat("RMSE:", rmse, "\n")
 
 # --- INTERPOLATION ---
 # Paths to the .tif files
-svf_path <- "rasters/Zaragoza_ETRS89_Sky_View_Factor.tif"
-gli_path <- "rasters/Zaragoza_ETRS89_GLI.tif"
-nbai_path <- "rasters/Zaragoza_ETRS89_NBAI.tif"
-ndti_path <- "rasters/Zaragoza_ETRS89_NDTI.tif"
-mdt_path <- "rasters/Zaragoza_ETRS89_MDT05_normalized.tif"
-lst_path <- "rasters/Zaragoza_ETRS89_LST_LC09_20230815_normalized.tif"
+svf_path <- "rasters/SVF_scaled.tif"
+gli_path <- "rasters/GLI.tif"
 #imd_path <- "rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
 #ndvi_path <- "rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
 #swir2_path <- "rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"
@@ -95,23 +91,15 @@ lst_path <- "rasters/Zaragoza_ETRS89_LST_LC09_20230815_normalized.tif"
 # Load the .tif files as raster layers
 svf_raster <- raster(svf_path)
 gli_raster <- raster(gli_path)
-nbai_raster <- raster(nbai_path)
-ndti_raster <- raster(ndti_path)
-mdt_raster <- raster(mdt_path)
-lst_raster <- raster(lst_path)
 
 # Ensure all rasters have the same CRS, extent, and resolution
 template <- svf_raster # Use one raster as the template
 
 gli_raster <- resample(gli_raster, template, method = "bilinear")
-nbai_raster <- resample(nbai_raster, template, method = "bilinear")
-ndti_raster <- resample(ndti_raster, template, method = "bilinear")
-mdt_raster <- resample(mdt_raster, template, method = "bilinear")
-lst_raster <- resample(lst_raster, template, method = "bilinear")
 
 # Stack the covariate rasters
-covariates_stack <- stack(svf_raster, gli_raster, nbai_raster, ndti_raster, mdt_raster, lst_raster)
-names(covariates_stack) <- c("svf", "gli", "nbai", "ndti", "mdt", "lst") # Set layer names
+covariates_stack <- stack(svf_raster, gli_raster)
+names(covariates_stack) <- c("svf", "gli") # Set layer names
 
 # Convert the raster stack to a SpatialPixelsDataFrame
 covariates_spdf <- as(covariates_stack, "SpatialPixelsDataFrame")
@@ -134,7 +122,7 @@ kriging_result <- krige(
 raster_output <- raster(kriging_result)
 
 # Save the output as a GeoTIFF file
-output_path <- "results/interpolation_svf_gli.tif"
+output_path <- "results/universal_kriging_without_projection.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
 
 #cat("Interpolated raster saved at:", output_path, "\n")
@@ -150,6 +138,6 @@ raster_uncertainty <- raster(covariates_spdf)  # This creates a raster object wi
 values(raster_uncertainty) <- kriging_uncertainty
 
 # Save the uncertainty raster as a GeoTIFF file
-uncertainty_output_path <- "results/uncertainty.tif"
+uncertainty_output_path <- "results/variances_without_projection.tif"
 writeRaster(raster_uncertainty, filename = uncertainty_output_path, format = "GTiff", overwrite = TRUE)
 

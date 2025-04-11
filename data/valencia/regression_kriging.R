@@ -100,6 +100,13 @@ covariates_spdf <- as(covariates_stack, "SpatialPixelsDataFrame")
 # Ensure your spatial points have the same CRS
 proj4string(points) <- proj4string(template)
 
+# Create a histogram of the residuals
+ggplot(as.data.frame(points), aes(x = residuals)) +
+  geom_histogram(binwidth = 0.5, fill = "steelblue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of Residuals", x = "Residuals", y = "Frequency") +
+  theme_minimal()
+shapiro.test(points$residuals)
+
 # STEP 3: Perform kriging on the residuals to get a residual surface
 residual_kriging <- krige(
   formula = residuals ~ 1, # Only kriging the residuals
@@ -131,6 +138,6 @@ writeRaster(residual_raster, filename = "results/kriging_residuals.tif", format 
 # Visualize the components
 par(mfrow=c(2,2))
 plot(trend_raster, main="Trend Component (from Regression)")
-plot(residual_raster, main="Residual Component (from Kriging)")
+#plot(residual_raster, main="Residual Component (from Kriging)")
 plot(final_prediction, main="Final Regression Kriging Prediction")
 #plot(raster(variogram_fit$exp_var$np), main="Number of Point Pairs in Variogram")

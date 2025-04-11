@@ -91,7 +91,7 @@ proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
 str(points)
 
 # Paths to the .tif files
-svf_path <- "rasters/SVF.tif"
+svf_path <- "rasters/SVF_scaled.tif"
 gli_path <- "rasters/GLI.tif"
 nbai_path <- "rasters/NBAI.tif"
 ndti_path <- "rasters/NDTI.tif"

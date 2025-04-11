@@ -6,6 +6,8 @@ library(readr)
 library(automap)
 library(ggpubr)
 library(spdep)
+library(scales)
+library(leaflet)
 
 # Load the CSV file into a dataframe
 data <- read_csv("data_netatmo.csv")
@@ -36,25 +38,42 @@ points <- data.frame(
 coordinates(points) <- ~lon + lat
 
 # Ensure the data is in a SpatialPointsDataFrame (this will automatically include the coordinates as spatial information)
+#proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
 proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
+
+# Create interactive map
+#leaflet(points) %>%
+#  addTiles() %>%  # Add OpenStreetMap tiles
+#  addCircleMarkers(
+#    radius = 5,
+#    color = "red",
+#    fillOpacity = 0.7,
+#    popup = ~paste("ID:", row.names(points@data), 
+#                   "<br>Temp Diff:", points$temp_diff)
+#  ) %>%
+#  addScaleBar()
+
+proj_crs <- CRS("+proj=utm +zone=30 +datum=WGS84") # use appropriate UTM zone
+points_proj <- spTransform(points, proj_crs)
 
 # Check the structure of the spatial points data
 str(points)
 
 # Define the variogram model
 variogram_fit <- autofitVariogram(
-  temp_diff ~ svf + gli,
-  input_data = points,
+  temp_diff ~ 1, #
+  input_data = points_proj,
   model = c("Sph", "Exp", "Gau", "Ste"), # Possible variogram models to test
   verbose = TRUE
 )
 plot(variogram_fit)
 fitted_variogram <- variogram_fit$var_model
+#fitted_variogram <- vgm(psill = 0.35, model = "Sph", range = 10, nugget = 0.1)
 
 # Perform cross-validation to evaluate the model's predictive performance
 cv_results <- krige.cv(
-  formula = temp_diff ~ svf + gli, # Specify the response variable and covariates
-  locations = points, # Spatial data points
+  formula = temp_diff ~ 1, # Specify the response variable and covariates
+  locations = points_proj, # Spatial data points
   model = fitted_variogram, # Variogram model
   nfold = 10 # Number of folds for cross-validation
 )
@@ -78,29 +97,41 @@ gli_raster <- raster(gli_path)
 template <- svf_raster # Use one raster as the template
 gli_raster <- resample(gli_raster, template, method = "bilinear")
 
-# Stack the covariate rasters
-covariates_stack <- stack(svf_raster, gli_raster)
-names(covariates_stack) <- c("svf", "gli") # Set layer names
+# Create a grid of spatial points (prediction locations)
+grid <- rasterToPoints(template, spatial = TRUE)
+proj4string(grid) <- proj_crs
 
-# Convert the raster stack to a SpatialPixelsDataFrame
-covariates_spdf <- as(covariates_stack, "SpatialPixelsDataFrame")
+# Convert SpatialPoints to SpatialPixelsDataFrame
+gridded(grid) <- TRUE  # now it's a grid
+grid_df <- as(grid, "SpatialPixelsDataFrame")
 
-# Ensure your spatial points have the same CRS
-proj4string(points) <- proj4string(template)
+identical(proj4string(points), proj4string(grid_df))
 
-# Perform kriging interpolation
 kriging_result <- krige(
-  formula = temp_diff ~ svf + gli,  # Interpolation formula
-  locations = points,                     # Spatial data points
-  newdata = covariates_spdf,              # Raster stack as spatial grid
-  model = fitted_variogram                 # Variogram model
+  formula = temp_diff ~ 1,
+  locations = points_proj,
+  newdata = grid_df,
+  model = fitted_variogram
 )
 
+crs(kriging_result) <- proj_crs
+crs(template) <- proj_crs
+extent(template) <- extent(kriging_result)
+
 # Convert the kriging result back to a raster
-raster_output <- raster(kriging_result)
+#raster_output <- raster(kriging_result)
+raster_output <- rasterize(kriging_result, template, field = "var1.pred", fun = mean)
+extent(kriging_result)
+extent(raster_output)
+
+head(kriging_result@data)
+
+
+summary(raster_output)
+plot(raster_output)
+hist(values(raster_output), main = "Histogram of Kriging Output", breaks = 50)
 
 # Save the output as a GeoTIFF file
 output_path <- "results/universal_kriging.tif"
 writeRaster(raster_output, filename = output_path, format = "GTiff", overwrite = TRUE)
-
 
