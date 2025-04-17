@@ -42,7 +42,7 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="#">Urban Heat Island Detector</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#getting-stated">Getting stated</a>
+    <li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting started</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
         <ul>
@@ -54,7 +54,47 @@
     </li>
         </ul>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dataflow">Dataflow</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#running">Running</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#download-steps">Download steps</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#download-sentinel-imagery">Download Sentinel Imagery</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#download-digital-surface-model">Download Digital Surface Model</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#download-netatmo-data">Download Netatmo Data</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#preprocessing-steps">Preprocessing steps</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#average-bands-throughout-the-study-period">Average bands throughout the study period</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#compute-green-leaf-index-or-other-indices">Compute Green Leaf Index or Other Indices</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#generate-sky-view-factor-raster">Generate Sky View Factor Raster</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#temperature-cleaning-and-quality-control">Temperature Cleaning and Quality Control</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#select-reference-stations">Select Reference Stations</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#compute-temperature-differences">Compute Temperature differences</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#add-raster-values-for-the-sampled-locations">Add Raster Values for the Sampled Locations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#prediction-steps">Prediction steps</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#compute-the-variogram-model-interpolate-using-kriging">Compute the Variogram Model &amp; Interpolate using Kriging</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#predict-using-the-cnn">Predict using the CNN</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
     </li>
     </ul>
                 </li>
@@ -83,7 +123,7 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="urban-heat-island-detector">Urban Heat Island Detector</h1>
-<h2 id="getting-stated">Getting stated</h2>
+<h2 id="getting-started">Getting started</h2>
 <p>This project uses poetry to manage its dependencies, run <code>poetry install --no-root</code> to install all dependencies mentioned in pyproject.toml. After that, execute <code>poetry shell</code> to activate the virtual environment.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <h3 id="sentinel-imagery-download">Sentinel imagery download</h3>
@@ -94,9 +134,71 @@
 <p>Replace <code>[city-name]</code> by the real name of the studied city. All the data related to that city will be stored in the folder <code>data/[city-name]</code>.</p>
 <h3 id="configuration">Configuration</h3>
 <p>All configuration parameters are specified in config.yaml, including settings for the logging system, data download, processing, and quality control. It also contains parameters for CNN training and prediction, as well as interpolation.</p>
+<h2 id="dataflow">Dataflow</h2>
+<p>The diagram below outlines the complete process for detecting urban heat islands. Each step should be executed individually, as some involve manual intervention or require special attention. This also makes it possible, in case you want to generate a heat island map without using meteorological stations, to skip all the steps on the right side of the diagram that do require station data. For further details, refer to the "Running" section.</p>
+<p><img alt="Dataflow diagram" src="images/urban_heat_island_dataflow_diagram.png" /></p>
 <h2 id="running">Running</h2>
-<p>There are two methods available for predicting the UHI: using a CNN or applying kriging.</p>
-<p>Run <code>python3 main.py</code> in your poetry environment, select the city, the method (CNN or Kriging) and wait until the prediction raster is generated in the folder <code>data/[city-name]/results</code>.</p>
+<p>This section explains the purpose of each step in the dataflow diagram, detailing its requirements, expected output, and where the results are stored.</p>
+<p>All commands follow the format: <code>python3 main.py -c [city-name] -s [step-name]</code></p>
+<p>Replace <code>[city-name]</code> with the name of the city you're working on. All data associated with that city is stored in the <code>data/[city-name]/</code> directory.</p>
+<p>Note: Understanding each step's requirements and how the results are stored enables you to create your own modules and integrate them into <code>main.py</code>.</p>
+<h3 id="download-steps">Download steps</h3>
+<h5 id="download-sentinel-imagery">Download Sentinel Imagery</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s download-sentinel</code>.</p>
+<p><strong>Requirements</strong>: Access tokens for the Copernicus S3 endpoint (see the "Prerequisites" section), a study area shapefile located at <code>data/[city-name]/shapefiles/study_area.shp</code> or at the path specified in config.yaml, and a defined study period in the same configuration file.</p>
+<p><strong>Result</strong>: The downloaded satellite bands are stacked into a single file per day, cropped, and saved in the <code>data/[city-name]/rasters/sentinel</code> folder. Please, make sure that the resulting rasters cover the full study area.</p>
+<h5 id="download-digital-surface-model">Download Digital Surface Model</h5>
+<p>This is a manual step. The digital surface model should be saved in <code>data/[city-name]/rasters/</code> as <code>mds.tif</code>.</p>
+<h5 id="download-netatmo-data">Download Netatmo Data</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s download-netatmo</code>.</p>
+<p><strong>Requirements</strong>: Update the Netatmo token in the <code>config.yaml</code> file at <code>download.netatmo.token</code>. You can obtain the token from https://dev.netatmo.com/apidocumentation/weather.
+Note: This token has an expiration time. If your study area includes many stations or covers a long time period, the token might expire during processing. In that case, you'll need to refresh the token and re-run the command.</p>
+<p><strong>Result</strong>: A CSV file will be created for each Netatmo station available within the specified study area and period. Each file is named using the station's MAC address (<code>[MAC address].csv</code>) and is saved in the <code>data/[city-name]/stations/</code> directory. Additionally, a summary file named <code>netatmo_stations.csv</code>, containing the MAC addresses and coordinates of all stations, will also be saved in the same directory.</p>
+<h3 id="preprocessing-steps">Preprocessing steps</h3>
+<h5 id="average-bands-throughout-the-study-period">Average bands throughout the study period</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s average-bands</code>.</p>
+<p><strong>Requirements</strong>: Raster files obtained in "Download Sentinel Imagery" step.</p>
+<p><strong>Result</strong>: For each band (by default, the bands used to compute indices such as GLI: blue, green, nir, red, swir1 and swir2), an average raster is created and saved in the <code>data/[city-name]/rasters</code> directory with the filename format <code>average_[band-name].tif</code>.</p>
+<h5 id="compute-green-leaf-index-or-other-indices">Compute Green Leaf Index or Other Indices</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s compute-gli</code>.</p>
+<p><strong>Requirements</strong>: The averaged bands generated during the "Average bands throughout the study period" step.</p>
+<p><strong>Result</strong>: Running the process will generate a file named <code>gli.tif</code> in the <code>data/[city-name]/rasters/</code> directory.</p>
+<p><strong>Note</strong>: While the example command computes the Green Leaf Index (GLI), you can also specify other indices using the -s flag:</p>
+<ul>
+<li>compute-nbai: Normalized Built-up Area Index</li>
+<li>compute-ndti: Normalized Difference Turbidity Index</li>
+<li>compute-ndvi: Normalized Difference Vegetation Index</li>
+</ul>
+<p>To compute additional indices, simply add a new <code>.py</code> file to the <code>src/indices/</code> directory and register it in <code>main.py</code>.</p>
+<h5 id="generate-sky-view-factor-raster">Generate Sky View Factor Raster</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s compute-svf</code>.</p>
+<p><strong>Requirements</strong>: A Digital Surface Model (DSM) raster file named <code>mds.tif</code> must be located in the <code>data/[city-name]/rasters/</code> directory. This file should be generated during the "Download Digital Surface Model" step.
+This step relies on the <code>saga_cmd</code> command-line tool, so SAGA GIS must be installed and accessible from the command line. On Debian/Ubuntu, you can install it using: <code>sudo apt-get install saga</code></p>
+<p><strong>Result</strong>: After running the process, a new file named <code>svf.tif</code> will be generated in the <code>data/[city-name]/rasters/</code> directory.</p>
+<h5 id="temperature-cleaning-and-quality-control">Temperature Cleaning and Quality Control</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s perform-qc</code>.</p>
+<p><strong>Requirements</strong>: All the <code>[MAC address].csv</code> files and the <code>netatmo_stations.csv</code> generated during the "Download Netatmo Data" step.</p>
+<p><strong>Result</strong>: After running the process, a new file named <code>temperatures.csv</code> will be generated in the <code>data/[city-name]/stations/</code> directory.</p>
+<h5 id="select-reference-stations">Select Reference Stations</h5>
+<p>This is a manual step. Open the netatmo_stations.shp file generated during the "Temperature Cleaning and Quality Control" step, choose the reference stations situated in rural areas and add their MAC addresses to the <code>config.yaml</code> file.</p>
+<h5 id="compute-temperature-differences">Compute Temperature differences</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s compute-differences</code>.</p>
+<p><strong>Requirements</strong>: The <code>temperatures.csv</code> file generated during the "Temperature Cleaning and Quality Control" step and the reference stations noted in the configuration file during the "Select Reference Stations" step.</p>
+<p><strong>Result</strong>: After running the process, a new file named <code>diffs.csv</code> will be generated in the <code>data/[city-name]/stations/</code> directory.</p>
+<h5 id="add-raster-values-for-the-sampled-locations">Add Raster Values for the Sampled Locations</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s add-raster-values</code>.</p>
+<p><strong>Requirements</strong>: The <code>diffs.csv</code> file generated during the "Compute Temperature differences" step and explanatory variables rasters (<code>svf.tif</code> and <code>gli.tif</code>) in the <code>data/[city-name]/rasters/</code> directory. The explanatory variables to use must be declared in the <code>config.yaml</code> file.</p>
+<p><strong>Result</strong>: After running the process, a new file named <code>full_data.csv</code> will be generated in the <code>data/[city-name]/</code> directory.</p>
+<h3 id="prediction-steps">Prediction steps</h3>
+<h5 id="compute-the-variogram-model-interpolate-using-kriging">Compute the Variogram Model &amp; Interpolate using Kriging</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s predict-with-kriging</code>.</p>
+<p><strong>Requirements</strong>: The <code>full_data.csv</code> file generated during the "Add Raster Values for the Sampled Locations" step. Explanatory variable rasters (svf.tif and gli.tif) located in the <code>data/[city-name]/rasters/</code> directory. The explanatory variables to be used must be specified in the <code>config.yaml</code> file.</p>
+<p><strong>Result</strong>: The interpolation result will be saved as <code>kriging_result.tif</code> in the <code>data/[city-name]/results/</code> directory. A <code>variogram.png</code> file will also be generated in the same directory, showing the fitted variogram used during kriging. Make sure the variogram is properly fitted, if not, adjust the initial parameters and rerun this step.</p>
+<h5 id="predict-using-the-cnn">Predict using the CNN</h5>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s predict-with-cnn</code>.</p>
+<p><strong>Requirements</strong>: <code>svf.tif</code> and <code>gli.tif</code>, or any other variable declared in the <code>config.yaml</code> file, must be stored in the <code>data/[city-name]/rasters/</code> directory. The model weights must also be located at <code>src/cnn/checkpoint.pth.tar</code>.</p>
+<p><strong>Result</strong>: The CNN result will be saved as <code>cnn_result.tif</code> in the <code>data/[city-name]/results/</code> directory.</p>
+<p><strong>Note</strong>: If the network has not been trained before, and therefore the weights are not stored at <code>src/cnn/checkpoint.pth.tar</code>, then run this command to train it: <code>python3 main.py -c [city-name] -s train-cnn</code>. A kriging interpolation must have been done before, because the resulting <code>interpolation.tif</code> file is used as the target, while the explanatory variables (which must exist in the <code>data/[city-name]/rasters</code> directory) are used as predictor variables.</p>
               
             </div>
           </div><footer>
@@ -140,5 +242,5 @@
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-03-28 10:05:11.573163+00:00
+Build Date UTC : 2025-04-17 15:31:56.853723+00:00
 -->
