@@ -1,6 +1,6 @@
 # UHI
 
-The purpose of this project is to automatically detect Urban Heat Islands (UHI) in cities using satellite imagery and open data.
+The purpose of this project is to automatically detect Urban Heat Islands (UHI) in cities using satellite imagery and open data from citizen weather stations.
 
 ## Installation
 

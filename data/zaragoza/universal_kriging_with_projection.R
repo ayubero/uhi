@@ -56,7 +56,7 @@ str(points)
 
 # Define the variogram model
 variogram_fit <- autofitVariogram(
-  temp_diff ~ svf + gli, #
+  temp_diff ~ svf + gli,
   input_data = points,
   model = c("Sph", "Exp", "Gau", "Ste"), # Possible variogram models to test
   verbose = TRUE

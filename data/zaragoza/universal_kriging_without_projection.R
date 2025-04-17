@@ -50,6 +50,11 @@ proj4string(points) <- CRS("+proj=longlat +datum=WGS84")
 # Check the structure of the spatial points data
 str(points)
 
+is.projected(points)
+
+utm_crs <- CRS("+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs")
+points <- spTransform(points, utm_crs)
+
 # Define the variogram model
 #variogram_model <- vgm(psill = 1, model = "Sph", range = 1000, nugget = 0.1)
 # svf + gli + nbai + ndti + mdt + lst
