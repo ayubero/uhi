@@ -255,8 +255,6 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
         print('Failed to retrieve data')
         sys.exit(1)
 
-    data = response.json()
-
     # Path where data will be downloaded
     target_path = os.path.abspath(os.path.join(os.getcwd(), download_folder))
 
@@ -268,32 +266,41 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
     # Shapefile mask
     mask = os.path.join(target_path, study_area_shapefile)
 
-    for product in response.json()['value']:
-        # Get S3 path
-        s3_path = product['S3Path'].lstrip('/eodata')
-        if 'L2A' in s3_path:
-            print('Date', product['OriginDate'])
-            print('Downloading data from', s3_path)
+    while True:
+        data = response.json()
 
-            # Move to "data" folder
-            os.chdir(target_path)
+        for product in data['value']:
+            # Get S3 path
+            s3_path = product['S3Path'].lstrip('/eodata')
+            if 'L2A' in s3_path:
+                print('Date', product['OriginDate'])
+                print('Downloading data from', s3_path)
 
-            # Start download
-            download_product(s3.Bucket('eodata'), s3_path)
+                # Move to "data" folder
+                os.chdir(target_path)
 
-            for root, dirs, files in os.walk(os.path.join(target_path, s3_path)):
-                # Check if 'IMG_DATA' is among the directories
-                if 'IMG_DATA' in dirs:
-                    img_path = os.path.join(root, 'IMG_DATA')
-                    print('Preprocessing', img_path)
-                    # Crop file to study area
-                    try:
-                        crop(img_path, output_path, mask)
-                    except Exception as e:
-                        
-                        print(f'An error occurred: {e}')
-                    #remove_folder(img_path)
-            print('---')
+                # Start download
+                download_product(s3.Bucket('eodata'), s3_path)
+
+                for root, dirs, files in os.walk(os.path.join(target_path, s3_path)):
+                    if 'IMG_DATA' in dirs:
+                        img_path = os.path.join(root, 'IMG_DATA')
+                        print('Preprocessing', img_path)
+                        try:
+                            crop(img_path, output_path, mask)
+                        except Exception as e:
+                            print(f'An error occurred: {e}')
+                print('---')
+
+        # Check for nextLink to paginate
+        if '@odata.nextLink' in data:
+            next_url = data['@odata.nextLink']
+            response = requests.get(next_url)
+            if response.status_code != 200:
+                print('Failed to retrieve next page of data')
+                break
+        else:
+            break  # No more pages
 
     # Remove download folder
     # Current directory is "data" folder
@@ -303,5 +310,5 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
 #https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq 'SENTINEL-2' and Attributes/OData.CSC.DoubleAttribute/any(att:att/Name eq 'cloudCover' and att/OData.CSC.DoubleAttribute/Value le 30.00) and OData.CSC.Intersects(area=geography'SRID=4326;POINT(-0.88482371152898 41.648336063076243)') and ContentDate/Start gt 2023-04-01T00:00:00.000Z and ContentDate/Start lt 2023-04-30T00:00:00.000Z&$orderby=ContentDate/Start desc
 
 if __name__ == '__main__':
-    download('../../data/oviedo_winter/rasters', '2023-12-01', '2023-12-31', '-5.84476', '43.36029', 10.00, '../shapefiles/study_area.shp'), 
+    download('../../data/oviedo_winter/rasters', '2023-12-01', '2024-02-28', '-5.84476', '43.36029', 10.00, '../shapefiles/study_area.shp'), 
     #download('../../data/valencia/rasters', '2023-11-01', '2023-11-30', '-0.375000', '39.466667', 10.00, '../shapefiles/study_area.shp')
