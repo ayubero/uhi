@@ -2,7 +2,7 @@
 
 ## Getting started
 
-This project uses poetry to manage its dependencies, run `poetry install --no-root` to install all dependencies mentioned in pyproject.toml. After that, execute `poetry shell` to activate the virtual environment.
+This project uses poetry to manage its dependencies, run `poetry install --no-root` to install all dependencies mentioned in pyproject.toml. After that, execute `eval $(poetry env activate)` to activate the virtual environment.
 
 ## Prerequisites
 
@@ -98,7 +98,7 @@ This step relies on the `saga_cmd` command-line tool, so SAGA GIS must be instal
 
 ##### Temperature Cleaning and Quality Control
 
-This is an automated step, whose command is: `python3 main.py -c [city-name] -s perform-qc`.
+This is an automated step, whose command is: `python3 main.py -c [city-name] -s perform-temperature-qc`.
 
 **Requirements**: All the `[MAC address].csv` files and the `netatmo_stations.csv` generated during the "Download Netatmo Data" step.
 

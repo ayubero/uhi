@@ -38,13 +38,24 @@ logging:
     
 paths:
     shapefiles:
+        folder_name: 'shapefiles'
         study_area: 'study_area.shp'
         netatmo_stations: 'netatmo_stations.shp'
     rasters:
         folder_name: 'rasters'
         sentinel_folder_name: 'sentinel'
+        average_prefix: 'average_'
+        blue: 'blue.tif'
+        green: 'green.tif'
+        red: 'red.tif'
+        nir: 'nir.tif'
+        swir1: 'swir1.tif'
+        swir2: 'swir2.tif'
         dsm: 'dsm.tif' # DSM stands for Digital Surface Model
         gli: 'gli.tif' # GLI stands for Green Leaf Index
+        nbai: 'nbai.tif' # NBAI stands for Normalized Built-up Area Index
+        ndti: 'ndti.tif' # NDTI stands for Normalized Difference Turbidity Index
+        ndvi: 'ndvi.tif' # NDVI stands for Normalized Difference Vegetation Index
         svf: 'svf.tif' # SVF stands for Sky View Factor
     stations:
         folder_name: 'stations'

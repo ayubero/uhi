@@ -1,7 +1,7 @@
 import os
 import geopandas as gpd
 from pyproj import CRS, Transformer
-from datetime import date
+import datetime
 import argparse
 from omegaconf import OmegaConf
 
@@ -11,34 +11,10 @@ from src.netatmo.netatmo_scrapper import get_stations, get_station_data
 from src.indices.gli import gli
 from src.indices.nbai import nbai
 from src.indices.ndti import ndti
+from src.indices.ndvi import ndvi
 from src.utils.normalize import normalize
 from src.utils.resample import resample
 from src.utils.average_values import average_values
-
-'''def list_folders(directory):
-    # List all folders in the given directory.
-    return [f for f in os.listdir(directory) if os.path.isdir(os.path.join(directory, f))]
-
-def choose_folder(directory):
-    # Display a menu of folders for the user to choose from.
-    folders = list_folders(directory)
-    if not folders:
-        print('No folders found in the specified directory.')
-        return None
-
-    print('Select a folder:')
-    for i, folder in enumerate(folders, start=1):
-        print(f'{i}. {folder}')
-
-    while True:
-        try:
-            choice = int(input('Enter the number of your choice: '))
-            if 1 <= choice <= len(folders):
-                return folders[choice - 1]
-            else:
-                print('Invalid choice. Please enter a number from the list.')
-        except ValueError:
-            print('Invalid input. Please enter a number.')'''
 
 def get_extent(shapefile_path):
     gdf = gpd.read_file(shapefile_path)
@@ -103,41 +79,35 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"Selected city: {args.city}")
-    print(f"Selected step: {args.step}")
+    logger.info('Starting script...')
+    logger.info(f'Selected city: {args.city}')
+    logger.info(f'Selected step: {args.step}')
 
     working_folder = os.path.join('data', args.city)
     raster_folder = os.path.join(working_folder, config.paths.rasters.folder_name)
     stations_folder = os.path.join(working_folder, config.paths.stations.folder_name)
 
-if __name__ == '__main__':
-    main()
-    '''logger.info('Starting script...')
-    directory = 'data'
-    if os.path.isdir(directory):
-        selected_folder = choose_folder(directory)
-        if selected_folder:
-            working_folder = os.path.join(directory, selected_folder)
-            raster_folder = os.path.join(working_folder, 'rasters')
-            stations_folder = os.path.join(working_folder, 'stations')
-
+    match args.step:
+        case 'download-sentinel':
+            print('gola')
+        case 'download-netatmo':
             # Get extents                          
             study_area_shapefile_path = os.path.join(working_folder, 'shapefiles/study_area.shp')
             print(f'Study area shapefile: {study_area_shapefile_path}')
-            extent_wgs84, extent_etrs89 = get_extent(study_area_shapefile_path)
-
-            # Convert DEM to SVF
-            dem_path = os.path.join(raster_folder, 'MDS.tif')
-            dem_to_svf(dem_path, raster_folder)
+            extent_wgs84, _ = get_extent(study_area_shapefile_path)
 
             # Download Netatmo data
-            token = '679b955ca250de0e040eb492|949b82156478188bbb44f8918f7295c3'
+            token = config.download.netatmo.token
+            start_date = datetime.strptime(config.study_period.start, "%d-%m-%Y").date()
+            end_date = datetime.strptime(config.study_period.end, "%d-%m-%Y").date()
             get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
-            get_station_data(token, stations_folder, date(2023, 6, 1), date(2023, 9, 1))
-            #get_station_data(token, stations_folder, date(2023, 12, 1), date(2024, 3, 1)) # Dates for Oviedo in winter
-
+            get_station_data(token, stations_folder, start_date, end_date)
+        case 'average-bands':
             # Process sentinel variables
-            sentinel_folder = os.path.join(raster_folder, 'sentinel')
+            sentinel_folder = os.path.join(
+                raster_folder,
+                config.paths.rasters.sentinel_folder_name
+            )
             sentinel_bands = [
                 ('blue', 2),
                 ('green', 3),
@@ -149,35 +119,66 @@ if __name__ == '__main__':
             # Create average rasters for each band
             for band in sentinel_bands:
                 band_name, band_index = band
-                print('Processing', band_name)
-                output_path = get_variable_path(raster_folder, band_name)
+                logger.info('Processing', band_name)
+                output_path = os.path.join(
+                    raster_folder, 
+                    config.paths.rasters.average_prefix + config.paths.rasters[band_name]
+                )
                 average_values(sentinel_folder, output_path, band_index)
-            # Generate variables
+        case 'compute-gli':
             gli(
-                get_variable_path(raster_folder, 'red'),
-                get_variable_path(raster_folder, 'green'),
-                get_variable_path(raster_folder, 'blue'),
-                os.path.join(raster_folder, 'GLI.tif')
+                os.path.join(raster_folder, config.paths.rasters.average_red),
+                os.path.join(raster_folder, config.paths.rasters.gli),
+                os.path.join(raster_folder, config.paths.rasters.blue),
+                os.path.join(raster_folder, config.paths.rasters.gli)
             )
+        case 'compute-nbai':
             nbai(
-                get_variable_path(raster_folder, 'swir1'),
-                get_variable_path(raster_folder, 'swir2'),
-                get_variable_path(raster_folder, 'green'),
-                os.path.join(raster_folder, 'NBAI.tif')
+                os.path.join(raster_folder, config.paths.rasters.average_swir1),
+                os.path.join(raster_folder, config.paths.rasters.average_swir2),
+                os.path.join(raster_folder, config.paths.rasters.average_green),
+                os.path.join(raster_folder, config.paths.rasters.nbai)
             )
+        case 'compute-ndti':
             ndti(
-                get_variable_path(raster_folder, 'red'),
-                get_variable_path(raster_folder, 'green'),
-                os.path.join(raster_folder, 'NDTI.tif')
+                os.path.join(raster_folder, config.paths.rasters.average_red),
+                os.path.join(raster_folder, config.paths.rasters.average_green),
+                os.path.join(raster_folder, config.paths.rasters.ndti)
             )
-            normalize(os.path.join(raster_folder, 'MDT.tif'))
-            normalize(os.path.join(raster_folder, 'LST.tif'))
-            resample(os.path.join(raster_folder, 'SVF.tif'), 100)
-            resample(os.path.join(raster_folder, 'GLI.tif'), 100)
-            resample(os.path.join(raster_folder, 'NBAI.tif'), 100)
-            resample(os.path.join(raster_folder, 'NDTI.tif'), 100)
-            resample(os.path.join(raster_folder, 'MDT_normalized.tif'), 100)
-            resample(os.path.join(raster_folder, 'LST_normalized.tif'), 100)
+        case 'compute-ndvi':
+            ndvi(
+                os.path.join(raster_folder, config.paths.rasters.average_red),
+                os.path.join(raster_folder, config.paths.rasters.average_nir),
+                os.path.join(raster_folder, config.paths.rasters.ndvi)
+            )
+        case 'compute-svf':
+            # Convert DSM to SVF
+            dem_path = os.path.join(raster_folder, config.paths.rasters.dsm)
+            dem_to_svf(dem_path, raster_folder)
+        case 'perform-temperature-qc':
+            logger.error('Unavailable')
+        case 'compute-differences':
+            logger.error('Unavailable')
+        case 'add-raster-values':
+            '''
+            normalize(os.path.join(raster_folder, 'mdt.tif'))
+            normalize(os.path.join(raster_folder, 'lst.tif'))
+            resample(os.path.join(raster_folder, 'svf.tif'), 100)
+            resample(os.path.join(raster_folder, 'gli.tif'), 100)
+            resample(os.path.join(raster_folder, 'nbai.tif'), 100)
+            resample(os.path.join(raster_folder, 'ndti.tif'), 100)
+            resample(os.path.join(raster_folder, 'mdt_normalized.tif'), 100)
+            resample(os.path.join(raster_folder, 'lst_normalized.tif'), 100)
+            '''
+            logger.error('Unavailable')
+        case 'predict-with-kriging':
+            logger.error('Unavailable')
+        case 'predict-with-cnn':
+            logger.error('Unavailable')
+        case 'train-cnn':
+            logger.error('Unavailable')
+        case _:
+            logger.info('No step found')
 
-    else:
-        print('Invalid directory path.')'''
+if __name__ == '__main__':
+    main()

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "uhi"
 version = "0.1.0"
-description = ""
+description = "Urban Heat Island Detector"
 authors = ["Andres <842236@unizar.es>"]
 readme = "README.md"
 
