@@ -124,7 +124,7 @@
               
                 <h1 id="urban-heat-island-detector">Urban Heat Island Detector</h1>
 <h2 id="getting-started">Getting started</h2>
-<p>This project uses poetry to manage its dependencies, run <code>poetry install --no-root</code> to install all dependencies mentioned in pyproject.toml. After that, execute <code>poetry shell</code> to activate the virtual environment.</p>
+<p>This project uses poetry to manage its dependencies, run <code>poetry install --no-root</code> to install all dependencies mentioned in pyproject.toml. After that, execute <code>eval $(poetry env activate)</code> to activate the virtual environment.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <h3 id="sentinel-imagery-download">Sentinel imagery download</h3>
 <p>In <code>src/download/sentinel.py</code>, the constant <code>product_url</code> is defined based on <a href="https://documentation.dataspace.copernicus.eu/APIs/OData.html">this documentation</a> to locate any product in the Copernicus OData API. Adjust this constant according to your search requirements.</p>
@@ -176,7 +176,7 @@ Note: This token has an expiration time. If your study area includes many statio
 This step relies on the <code>saga_cmd</code> command-line tool, so SAGA GIS must be installed and accessible from the command line. On Debian/Ubuntu, you can install it using: <code>sudo apt-get install saga</code></p>
 <p><strong>Result</strong>: After running the process, a new file named <code>svf.tif</code> will be generated in the <code>data/[city-name]/rasters/</code> directory.</p>
 <h5 id="temperature-cleaning-and-quality-control">Temperature Cleaning and Quality Control</h5>
-<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s perform-qc</code>.</p>
+<p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s perform-temperature-qc</code>.</p>
 <p><strong>Requirements</strong>: All the <code>[MAC address].csv</code> files and the <code>netatmo_stations.csv</code> generated during the "Download Netatmo Data" step.</p>
 <p><strong>Result</strong>: After running the process, a new file named <code>temperatures.csv</code> will be generated in the <code>data/[city-name]/stations/</code> directory.</p>
 <h5 id="select-reference-stations">Select Reference Stations</h5>
@@ -242,5 +242,5 @@ This step relies on the <code>saga_cmd</code> command-line tool, so SAGA GIS mus
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-04-17 15:31:56.853723+00:00
+Build Date UTC : 2025-04-23 16:37:06.082081+00:00
 -->
