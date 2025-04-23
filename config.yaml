@@ -1,5 +1,5 @@
 # Configuration
-crs: 'EPSG:25830'
+crs: '25830' # EPSG code
 
 study_period: # Format: DD-MM-YYYY
     start: '01-06-2023'
@@ -41,10 +41,12 @@ paths:
         study_area: 'study_area.shp'
         netatmo_stations: 'netatmo_stations.shp'
     rasters:
+        folder_name: 'rasters'
+        sentinel_folder_name: 'sentinel'
         dsm: 'dsm.tif' # DSM stands for Digital Surface Model
         gli: 'gli.tif' # GLI stands for Green Leaf Index
         svf: 'svf.tif' # SVF stands for Sky View Factor
-        satellite_folder: 'sentinel'
     stations:
+        folder_name: 'stations'
         temperatures: 'temperatures.csv' # Includes all recorded temperatures, compiled from the merged CSV files of all stations after data cleaning and quality control
         differences: 'diffs.csv' # Includes the computed temperature differences between each station and the reference stations

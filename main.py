@@ -2,6 +2,8 @@ import os
 import geopandas as gpd
 from pyproj import CRS, Transformer
 from datetime import date
+import argparse
+from omegaconf import OmegaConf
 
 from src.logger_setup import logger
 from src.utils.dem_to_svf import dem_to_svf
@@ -13,12 +15,12 @@ from src.utils.normalize import normalize
 from src.utils.resample import resample
 from src.utils.average_values import average_values
 
-def list_folders(directory):
-    '''List all folders in the given directory.'''
+'''def list_folders(directory):
+    # List all folders in the given directory.
     return [f for f in os.listdir(directory) if os.path.isdir(os.path.join(directory, f))]
 
 def choose_folder(directory):
-    '''Display a menu of folders for the user to choose from.'''
+    # Display a menu of folders for the user to choose from.
     folders = list_folders(directory)
     if not folders:
         print('No folders found in the specified directory.')
@@ -36,7 +38,7 @@ def choose_folder(directory):
             else:
                 print('Invalid choice. Please enter a number from the list.')
         except ValueError:
-            print('Invalid input. Please enter a number.')
+            print('Invalid input. Please enter a number.')'''
 
 def get_extent(shapefile_path):
     gdf = gpd.read_file(shapefile_path)
@@ -90,8 +92,27 @@ def get_extent(shapefile_path):
 def get_variable_path(raster_folder, band_name):
     return os.path.join(raster_folder, f'average_{band_name}.tif')
 
+def main():
+    # Load the YAML config file
+    config = OmegaConf.load('config.yaml')
+
+    # Get arguments
+    parser = argparse.ArgumentParser(description="Process some input.")
+    parser.add_argument('-c', '--city', required=True, help='Name of the city')
+    parser.add_argument('-s', '--step', required=True, help='Step name')
+
+    args = parser.parse_args()
+
+    print(f"Selected city: {args.city}")
+    print(f"Selected step: {args.step}")
+
+    working_folder = os.path.join('data', args.city)
+    raster_folder = os.path.join(working_folder, config.paths.rasters.folder_name)
+    stations_folder = os.path.join(working_folder, config.paths.stations.folder_name)
+
 if __name__ == '__main__':
-    logger.info('Starting script...')
+    main()
+    '''logger.info('Starting script...')
     directory = 'data'
     if os.path.isdir(directory):
         selected_folder = choose_folder(directory)
@@ -106,17 +127,17 @@ if __name__ == '__main__':
             extent_wgs84, extent_etrs89 = get_extent(study_area_shapefile_path)
 
             # Convert DEM to SVF
-            '''dem_path = os.path.join(raster_folder, 'MDS.tif')
-            dem_to_svf(dem_path, raster_folder)'''
+            dem_path = os.path.join(raster_folder, 'MDS.tif')
+            dem_to_svf(dem_path, raster_folder)
 
-            '''# Download Netatmo data
+            # Download Netatmo data
             token = '679b955ca250de0e040eb492|949b82156478188bbb44f8918f7295c3'
             get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
             get_station_data(token, stations_folder, date(2023, 6, 1), date(2023, 9, 1))
-            #get_station_data(token, stations_folder, date(2023, 12, 1), date(2024, 3, 1)) # Dates for Oviedo in winter'''
+            #get_station_data(token, stations_folder, date(2023, 12, 1), date(2024, 3, 1)) # Dates for Oviedo in winter
 
             # Process sentinel variables
-            '''sentinel_folder = os.path.join(raster_folder, 'sentinel')
+            sentinel_folder = os.path.join(raster_folder, 'sentinel')
             sentinel_bands = [
                 ('blue', 2),
                 ('green', 3),
@@ -150,7 +171,7 @@ if __name__ == '__main__':
                 os.path.join(raster_folder, 'NDTI.tif')
             )
             normalize(os.path.join(raster_folder, 'MDT.tif'))
-            normalize(os.path.join(raster_folder, 'LST.tif'))'''
+            normalize(os.path.join(raster_folder, 'LST.tif'))
             resample(os.path.join(raster_folder, 'SVF.tif'), 100)
             resample(os.path.join(raster_folder, 'GLI.tif'), 100)
             resample(os.path.join(raster_folder, 'NBAI.tif'), 100)
@@ -159,4 +180,4 @@ if __name__ == '__main__':
             resample(os.path.join(raster_folder, 'LST_normalized.tif'), 100)
 
     else:
-        print('Invalid directory path.')
+        print('Invalid directory path.')'''

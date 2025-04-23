@@ -4,7 +4,7 @@ The purpose of this project is to automatically detect Urban Heat Islands (UHI) 
 
 ## Installation
 
-This project uses poetry to manage its dependencies, run `poetry install --no-root` to install all dependencies mentioned in pyproject.toml. After that, execute `poetry shell` to activate the virtual environment.
+This project uses poetry to manage its dependencies, run `poetry install --no-root` to install all dependencies mentioned in pyproject.toml. After that, execute `eval $(poetry env activate)` to activate the virtual environment.
 
 ## Documentation
 
