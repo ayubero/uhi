@@ -7,6 +7,7 @@ from omegaconf import OmegaConf
 
 from src.logger_setup import logger
 from src.utils.dem_to_svf import dem_to_svf
+from src.download.sentinel import download
 from src.netatmo.netatmo_scrapper import get_stations, get_station_data
 from src.indices.gli import gli
 from src.indices.nbai import nbai
@@ -89,7 +90,12 @@ def main():
 
     match args.step:
         case 'download-sentinel':
-            print('gola')
+            # Get extents                          
+            study_area_shapefile_path = os.path.join(working_folder, 'shapefiles/study_area.shp')
+            print(f'Study area shapefile: {study_area_shapefile_path}')
+            extent_wgs84, _ = get_extent(study_area_shapefile_path)
+
+            download(raster_folder, config.study_period.start, config.study_period.end, extent_wgs84['lon_ne'], extent_wgs84['lat_ne'], 10.00, study_area_shapefile_path)
         case 'download-netatmo':
             # Get extents                          
             study_area_shapefile_path = os.path.join(working_folder, 'shapefiles/study_area.shp')
