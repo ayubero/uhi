@@ -80,7 +80,7 @@
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#select-reference-stations">Select Reference Stations</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#compute-temperature-differences">Compute Temperature differences</a>
+    <li class="toctree-l4"><a class="reference internal" href="#compute-temperature-differences">Compute Temperature Differences</a>
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#add-raster-values-for-the-sampled-locations">Add Raster Values for the Sampled Locations</a>
     </li>
@@ -181,7 +181,7 @@ This step relies on the <code>saga_cmd</code> command-line tool, so SAGA GIS mus
 <p><strong>Result</strong>: After running the process, a new file named <code>temperatures.csv</code> will be generated in the <code>data/[city-name]/stations/</code> directory.</p>
 <h5 id="select-reference-stations">Select Reference Stations</h5>
 <p>This is a manual step. Open the netatmo_stations.shp file generated during the "Temperature Cleaning and Quality Control" step, choose the reference stations situated in rural areas and add their MAC addresses to the <code>config.yaml</code> file.</p>
-<h5 id="compute-temperature-differences">Compute Temperature differences</h5>
+<h5 id="compute-temperature-differences">Compute Temperature Differences</h5>
 <p>This is an automated step, whose command is: <code>python3 main.py -c [city-name] -s compute-differences</code>.</p>
 <p><strong>Requirements</strong>: The <code>temperatures.csv</code> file generated during the "Temperature Cleaning and Quality Control" step and the reference stations noted in the configuration file during the "Select Reference Stations" step.</p>
 <p><strong>Result</strong>: After running the process, a new file named <code>diffs.csv</code> will be generated in the <code>data/[city-name]/stations/</code> directory.</p>
@@ -242,5 +242,5 @@ This step relies on the <code>saga_cmd</code> command-line tool, so SAGA GIS mus
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-04-25 06:58:10.492975+00:00
+Build Date UTC : 2025-05-03 20:47:14.809822+00:00
 -->
