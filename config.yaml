@@ -20,6 +20,27 @@ cnn:
     batch_size: 16
     epochs: 30
 
+kriging:
+    added_variables_resolution: 100 # m/px; resolution used in the step 'add-raster-values'
+
+temperature:
+    quality_control:
+        min_temperature: -20 # ºC
+        max_temperature: 45 # ºC
+        temperature_variation_threshold: 10 # ºC
+        lower_tail: -2.32
+        upper_tail: 1.64
+    reference_stations: [
+        '70:ee:50:7a:c2:72',
+        '70:ee:50:73:e2:d8',
+        '70:ee:50:06:91:04'
+    ]
+    stations_to_remove: [
+        '70:ee:50:2b:2b:98',
+        '70:ee:50:b5:0d:9c',
+        '70:ee:50:32:af:3e'
+    ]
+
 logging:
     version: 1
     disable_existing_loggers: false
@@ -57,7 +78,15 @@ paths:
         ndti: 'ndti.tif' # NDTI stands for Normalized Difference Turbidity Index
         ndvi: 'ndvi.tif' # NDVI stands for Normalized Difference Vegetation Index
         svf: 'svf.tif' # SVF stands for Sky View Factor
+        stacked_variables: 'stacked_variables.tif' # Stack variables to use for training/predicting with the CNN
+        cnn_result: 'cnn_result.tif' # Predicted result by the CNN
+        kriging_result: 'kriging_result.tif'
     stations:
         folder_name: 'stations'
+        stations: 'netatmo_data.csv' # Includes all Netatmo stations in the study area with their coordinates
         temperatures: 'temperatures.csv' # Includes all recorded temperatures, compiled from the merged CSV files of all stations after data cleaning and quality control
-        differences: 'diffs.csv' # Includes the computed temperature differences between each station and the reference stations
+        differences: 'differences.csv' # Includes the computed temperature differences between each station and the reference stations
+    cnn:
+        patch_folder_name: 'patches'
+    kriging:
+        folder_name: 'kriging'

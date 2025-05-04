@@ -4,18 +4,24 @@ from pyproj import CRS, Transformer
 import datetime
 import argparse
 from omegaconf import OmegaConf
+import shutil
+import docker
 
 from src.logger_setup import logger
 from src.utils.dem_to_svf import dem_to_svf
 from src.download.sentinel import download
 from src.netatmo.netatmo_scrapper import get_stations, get_station_data
+from src.netatmo.temperature_qc import perform_qc
+from src.netatmo.compute_temperature_differences import compute_differences
+from src.netatmo.add_raster_values import add_raster_values
 from src.indices.gli import gli
 from src.indices.nbai import nbai
 from src.indices.ndti import ndti
 from src.indices.ndvi import ndvi
-from src.utils.normalize import normalize
-from src.utils.resample import resample
 from src.utils.average_values import average_values
+from src.cnn.generate_patches import extract_patches
+from src.cnn.train import train
+from src.cnn.predict import predict
 
 def get_extent(shapefile_path):
     gdf = gpd.read_file(shapefile_path)
@@ -162,27 +168,68 @@ def main():
             dem_path = os.path.join(raster_folder, config.paths.rasters.dsm)
             dem_to_svf(dem_path, raster_folder)
         case 'perform-temperature-qc':
-            logger.error('Unavailable')
+            perform_qc(stations_folder)
         case 'compute-differences':
-            logger.error('Unavailable')
+            compute_differences(stations_folder)
         case 'add-raster-values':
-            '''
-            normalize(os.path.join(raster_folder, 'mdt.tif'))
-            normalize(os.path.join(raster_folder, 'lst.tif'))
-            resample(os.path.join(raster_folder, 'svf.tif'), 100)
-            resample(os.path.join(raster_folder, 'gli.tif'), 100)
-            resample(os.path.join(raster_folder, 'nbai.tif'), 100)
-            resample(os.path.join(raster_folder, 'ndti.tif'), 100)
-            resample(os.path.join(raster_folder, 'mdt_normalized.tif'), 100)
-            resample(os.path.join(raster_folder, 'lst_normalized.tif'), 100)
-            '''
-            logger.error('Unavailable')
+            add_raster_values(raster_folder, stations_folder)
         case 'predict-with-kriging':
-            logger.error('Unavailable')
+            client = docker.from_env()
+            docker_folder = os.path.join(working_folder, config.paths.kriging.folder_name)
+
+            # Copy necessary files into the docker folder
+            source_files = [
+                os.path.join(raster_folder, config.paths.rasters.svf),
+                os.path.join(raster_folder, config.paths.rasters.gli),
+                os.path.join(stations_folder, config.paths.stations.stations)
+            ]
+            destination_files = [
+                os.path.join(docker_folder, config.paths.rasters.svf),
+                os.path.join(docker_folder, config.paths.rasters.gli),
+                os.path.join(docker_folder, config.paths.stations.stations)
+            ]
+            for source, destination in zip(source_files, destination_files):
+                shutil.copy2(source, destination)
+
+            # Build the image
+            image, logs = client.images.build(path=docker_folder, tag='kriging-image')
+
+            '''# Print the build logs
+            for chunk in logs:
+                if 'stream' in chunk:
+                    print(chunk['stream'].strip())'''
+            
+            # Run the container
+            container = client.containers.run(
+                image='kriging-image',
+                name='kriging-container',
+                detach=True,
+                remove=True # Automatically remove container when done
+            )
+
+            # Wait for it to finish
+            result = container.wait()
+
+            # Print output
+            print('Exit code:', result['StatusCode'])
+            print('Logs:')
+            print(container.logs().decode())
+            
+            # Remove input files
+            for file_path in destination_files:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
         case 'predict-with-cnn':
-            logger.error('Unavailable')
+            predict(
+                os.path.join(raster_folder, config.paths.rasters.stacked_variables), 
+                os.path.join(raster_folder, config.paths.rasters.cnn_result)
+            )
         case 'train-cnn':
-            logger.error('Unavailable')
+            patch_folder = os.path.join(working_folder, config.paths.cnn.patch_folder_name)
+            explanatory_variables_path = os.path.join(raster_folder, config.paths.rasters.stacked_variables)
+            target_variable_path = os.path.join(raster_folder, config.rasters.kriging_result)
+            extract_patches(explanatory_variables_path, target_variable_path, config.cnn.patch_size, patch_folder)
+            train(patch_folder)
         case _:
             logger.info('No step found')
 

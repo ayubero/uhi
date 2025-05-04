@@ -108,7 +108,7 @@ This is an automated step, whose command is: `python3 main.py -c [city-name] -s 
 
 This is a manual step. Open the netatmo_stations.shp file generated during the "Temperature Cleaning and Quality Control" step, choose the reference stations situated in rural areas and add their MAC addresses to the `config.yaml` file.
 
-##### Compute Temperature differences
+##### Compute Temperature Differences
 
 This is an automated step, whose command is: `python3 main.py -c [city-name] -s compute-differences`.
 

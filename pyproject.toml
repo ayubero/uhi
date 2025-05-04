@@ -21,6 +21,7 @@ scipy = "^1.15.2"
 mkdocs = "^1.6.1"
 geopandas = "^1.0.1"
 omegaconf = "^2.3.0"
+docker = "^7.1.0"
 
 
 [build-system]
