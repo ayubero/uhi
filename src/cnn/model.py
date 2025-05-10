@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from omegaconf import OmegaConf
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):

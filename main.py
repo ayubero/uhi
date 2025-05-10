@@ -110,8 +110,8 @@ def main():
 
             # Download Netatmo data
             token = config.download.netatmo.token
-            start_date = datetime.strptime(config.study_period.start, "%d-%m-%Y").date()
-            end_date = datetime.strptime(config.study_period.end, "%d-%m-%Y").date()
+            start_date = datetime.strptime(config.study_period.start, "%Y-%m-%d").date()
+            end_date = datetime.strptime(config.study_period.end, "%Y-%m-%d").date()
             get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
             get_station_data(token, stations_folder, start_date, end_date)
         case 'average-bands':

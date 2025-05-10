@@ -22,6 +22,7 @@ mkdocs = "^1.6.1"
 geopandas = "^1.0.1"
 omegaconf = "^2.3.0"
 docker = "^7.1.0"
+seaborn = "^0.13.2"
 
 
 [build-system]

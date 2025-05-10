@@ -1,9 +1,9 @@
 # Configuration
 crs: '25830' # EPSG code
 
-study_period: # Format: DD-MM-YYYY
-    start: '01-06-2023'
-    end: '31-08-2023'
+study_period: # Format: YYYY-MM-DD
+    start: '2023-06-01'
+    end: '2023-08-31'
 
 download:
     copernicus-s3:

@@ -10,7 +10,7 @@ from omegaconf import OmegaConf
 from src.logger_setup import logger
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 from src.utils.normalize import normalize
 from src.utils.resample import resample

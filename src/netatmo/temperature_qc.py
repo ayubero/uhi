@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 from src.logger_setup import logger
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 # For each hour, find the closest timestamp (either before or after)
 def get_closest_hour(row, df):

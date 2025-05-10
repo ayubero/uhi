@@ -6,10 +6,10 @@ from scipy.signal.windows import triang
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
 
-from model import CNN
+from .model import CNN
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 def _spline_window(window_size, power=2):
     '''

@@ -66,7 +66,7 @@ cv_results <- krige.cv(
   formula = temp_diff ~ svf + gli, # Specify the response variable and covariates
   locations = points, # Spatial data points
   model = fitted_variogram, # Variogram model
-  nfold = 10 # Number of folds for cross-validation
+  #nfold = 10 # Number of folds for cross-validation
 )
 print(cv_results)
 

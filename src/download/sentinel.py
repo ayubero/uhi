@@ -127,13 +127,6 @@ def crop(file_path, output_path, shapefile):
     with rasterio.open(name_S2) as src:
         print('Raster CRS:', src.crs)
         print('Shapefile CRS:', shapes_crs)
-        '''if shapes_crs != src.crs:
-            print('Reprojecting shapefile to match raster CRS...')
-            shapes = [transform_geom(shapes_crs, src.crs, geom) for geom in shapes]
-        else:
-            print('CRS match!')
-        out_image, out_transform = mask(src, shapes, nodata=nodata, crop=True)
-        out_meta = src.meta'''
         if shapes_crs != src.crs:
             print('Reprojecting raster to match shapefile CRS...')
 
@@ -242,8 +235,7 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
     # Madrid
     #latitude = '40.416775'
     #longitude = '-3.703790'
-    clouds = str(clouds) # Cloud percentage
-    product_url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name%20eq%20%27SENTINEL-2%27%20and%20Attributes/OData.CSC.DoubleAttribute/any(att:att/Name%20eq%20%27cloudCover%27%20and%20att/OData.CSC.DoubleAttribute/Value%20le%20' + clouds + ')%20and%20OData.CSC.Intersects(area=geography%27SRID=4326;POINT(' + longitude + '%20' + latitude + ')%27)%20and%20ContentDate/Start%20gt%20' + start_date + 'T00:00:00.000Z%20and%20ContentDate/Start%20lt%20' + end_date + 'T00:00:00.000Z&$orderby=ContentDate/Start%20desc'
+    product_url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name%20eq%20%27SENTINEL-2%27%20and%20Attributes/OData.CSC.DoubleAttribute/any(att:att/Name%20eq%20%27cloudCover%27%20and%20att/OData.CSC.DoubleAttribute/Value%20le%20' + str(clouds) + ')%20and%20OData.CSC.Intersects(area=geography%27SRID=4326;POINT(' + str(longitude) + '%20' + str(latitude) + ')%27)%20and%20ContentDate/Start%20gt%20' + str(start_date) + 'T00:00:00.000Z%20and%20ContentDate/Start%20lt%20' + str(end_date) + 'T00:00:00.000Z&$orderby=ContentDate/Start%20desc'
 
     # Sentinel-3
     #product_url = 'https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name%20eq%20%27SENTINEL-3%27%20and%20Attributes/OData.CSC.DoubleAttribute/any(att:att/Name%20eq%20%27cloudCover%27%20and%20att/OData.CSC.DoubleAttribute/Value%20le%2030.00)%20and%20OData.CSC.Intersects(area=geography%27SRID=4326;POINT(-0.88482371152898%2041.648336063076243)%27)%20and%20ContentDate/Start%20gt%202023-08-01T00:00:00.000Z%20and%20ContentDate/Start%20lt%202023-08-31T00:00:00.000Z&$orderby=ContentDate/Start%20desc'
@@ -264,7 +256,7 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
     os.makedirs(output_path, exist_ok=True)
 
     # Shapefile mask
-    mask = os.path.join(target_path, study_area_shapefile)
+    mask = study_area_shapefile
 
     while True:
         data = response.json()
@@ -305,7 +297,7 @@ def download(download_folder, start_date, end_date, longitude, latitude, clouds:
     # Remove download folder
     # Current directory is "data" folder
     os.chdir(target_path)
-    #remove_folder(os.path.join(os.getcwd(), 'Sentinel-2'))
+    remove_folder(os.path.join(os.getcwd(), 'Sentinel-2'))
 
 #https://catalogue.dataspace.copernicus.eu/odata/v1/Products?$filter=Collection/Name eq 'SENTINEL-2' and Attributes/OData.CSC.DoubleAttribute/any(att:att/Name eq 'cloudCover' and att/OData.CSC.DoubleAttribute/Value le 30.00) and OData.CSC.Intersects(area=geography'SRID=4326;POINT(-0.88482371152898 41.648336063076243)') and ContentDate/Start gt 2023-04-01T00:00:00.000Z and ContentDate/Start lt 2023-04-30T00:00:00.000Z&$orderby=ContentDate/Start desc
 

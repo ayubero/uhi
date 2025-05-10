@@ -8,11 +8,11 @@ import logging
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
 
-from model import UNet, CNN
-from dataset import RasterPatchDataset
+from .model import UNet, CNN
+from .dataset import RasterPatchDataset
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 def save_checkpoint(state, filename='checkpoint.pth.tar'):
     torch.save(state, filename)

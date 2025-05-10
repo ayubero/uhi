@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 from src.logger_setup import logger
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 def compute_differences(station_folder_path):
     ref_stations = config.temperature.reference_stations

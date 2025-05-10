@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from omegaconf import OmegaConf
 
 # Load the YAML config file
-config = OmegaConf.load('../config.yaml')
+config = OmegaConf.load('./config.yaml')
 
 def extract_patches(input_tif, target_tif, patch_size, output_dir, stride=None):
     if stride is None:
