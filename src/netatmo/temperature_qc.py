@@ -67,6 +67,9 @@ def perform_qc(station_folder_path):
     temperatures = pd.concat(all_dataframes, ignore_index=True)
 
     # Quality control
+    # Count rows per station before filtering
+    before_counts = temperatures['station'].value_counts()
+
     # Remove values below -20ºC and above 45ºC
     temperatures = temperatures[(temperatures['temp'] >= config.temperature.quality_control.min_temperature) & (temperatures['temp'] <= config.temperature.quality_control.max_temperature)]
 
@@ -98,6 +101,17 @@ def perform_qc(station_folder_path):
 
     # Remove rows where the z-score value is outside the range between -2.32 and 1.64
     temperatures = temperatures[(temperatures['z_score'].abs() >= config.temperature.quality_control.lower_tail) & ((temperatures['z_score'].abs() <= config.temperature.quality_control.upper_tail))]
+
+    # Count rows per station after filtering
+    after_counts = temperatures['station'].value_counts()
+
+    #C ombine and compute drop fraction
+    station_stats = pd.DataFrame({'before': before_counts, 'after': after_counts})
+    station_stats['drop_fraction'] = 1 - (station_stats['after'] / station_stats['before'])
+
+    # Identify stations that lost 25% or more
+    stations_to_remove = station_stats[station_stats['drop_fraction'] >= 0.25].index
+    logger.info('Recommendation: Remove these stations with more than 25\% of samples considered invalid: ', stations_to_remove.tolist())
 
     # Remove unnecessary columns
     temperatures = temperatures.drop(columns=['z_score', 'mean', 'std'])
