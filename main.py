@@ -19,6 +19,7 @@ from src.indices.nbai import nbai
 from src.indices.ndti import ndti
 from src.indices.ndvi import ndvi
 from src.utils.average_values import average_values
+from src.utils.join_predictors import stack_predictors
 from src.cnn.generate_patches import extract_patches
 from src.cnn.train import train
 from src.cnn.predict import predict
@@ -97,7 +98,7 @@ def main():
     match args.step:
         case 'download-sentinel':
             # Get extents                          
-            study_area_shapefile_path = os.path.join(working_folder, 'shapefiles/study_area.shp')
+            study_area_shapefile_path = os.path.join(os.getcwd(), working_folder, 'shapefiles/study_area.shp')
             print(f'Study area shapefile: {study_area_shapefile_path}')
             extent_wgs84, _ = get_extent(study_area_shapefile_path)
 
@@ -110,8 +111,8 @@ def main():
 
             # Download Netatmo data
             token = config.download.netatmo.token
-            start_date = datetime.strptime(config.study_period.start, "%Y-%m-%d").date()
-            end_date = datetime.strptime(config.study_period.end, "%Y-%m-%d").date()
+            start_date = datetime.datetime.strptime(config.study_period.start, "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(config.study_period.end, "%Y-%m-%d").date()
             get_stations(token, extent_wgs84['lat_ne'], extent_wgs84['lon_ne'], extent_wgs84['lat_sw'], extent_wgs84['lon_sw'], stations_folder)
             get_station_data(token, stations_folder, start_date, end_date)
         case 'average-bands':
@@ -131,36 +132,36 @@ def main():
             # Create average rasters for each band
             for band in sentinel_bands:
                 band_name, band_index = band
-                logger.info('Processing', band_name)
+                logger.info(f'Processing {band_name}')
                 output_path = os.path.join(
                     raster_folder, 
-                    config.paths.rasters.average_prefix + config.paths.rasters[band_name]
+                    config.paths.rasters[band_name]
                 )
                 average_values(sentinel_folder, output_path, band_index)
         case 'compute-gli':
             gli(
-                os.path.join(raster_folder, config.paths.rasters.average_red),
-                os.path.join(raster_folder, config.paths.rasters.gli),
+                os.path.join(raster_folder, config.paths.rasters.red),
+                os.path.join(raster_folder, config.paths.rasters.green),
                 os.path.join(raster_folder, config.paths.rasters.blue),
                 os.path.join(raster_folder, config.paths.rasters.gli)
             )
         case 'compute-nbai':
             nbai(
-                os.path.join(raster_folder, config.paths.rasters.average_swir1),
-                os.path.join(raster_folder, config.paths.rasters.average_swir2),
-                os.path.join(raster_folder, config.paths.rasters.average_green),
+                os.path.join(raster_folder, config.paths.rasters.swir1),
+                os.path.join(raster_folder, config.paths.rasters.swir2),
+                os.path.join(raster_folder, config.paths.rasters.green),
                 os.path.join(raster_folder, config.paths.rasters.nbai)
             )
         case 'compute-ndti':
             ndti(
-                os.path.join(raster_folder, config.paths.rasters.average_red),
-                os.path.join(raster_folder, config.paths.rasters.average_green),
+                os.path.join(raster_folder, config.paths.rasters.red),
+                os.path.join(raster_folder, config.paths.rasters.green),
                 os.path.join(raster_folder, config.paths.rasters.ndti)
             )
         case 'compute-ndvi':
             ndvi(
-                os.path.join(raster_folder, config.paths.rasters.average_red),
-                os.path.join(raster_folder, config.paths.rasters.average_nir),
+                os.path.join(raster_folder, config.paths.rasters.red),
+                os.path.join(raster_folder, config.paths.rasters.nir),
                 os.path.join(raster_folder, config.paths.rasters.ndvi)
             )
         case 'compute-svf':
@@ -220,6 +221,11 @@ def main():
                 if os.path.exists(file_path):
                     os.remove(file_path)
         case 'predict-with-cnn':
+            tif_files = [
+                config.paths.rasters.svf, 
+                config.paths.rasters.gli
+            ]
+            stack_predictors(tif_files, raster_folder)
             predict(
                 os.path.join(raster_folder, config.paths.rasters.stacked_variables), 
                 os.path.join(raster_folder, config.paths.rasters.cnn_result)
@@ -227,7 +233,7 @@ def main():
         case 'train-cnn':
             patch_folder = os.path.join(working_folder, config.paths.cnn.patch_folder_name)
             explanatory_variables_path = os.path.join(raster_folder, config.paths.rasters.stacked_variables)
-            target_variable_path = os.path.join(raster_folder, config.rasters.kriging_result)
+            target_variable_path = os.path.join(raster_folder, config.paths.rasters.kriging_result)
             extract_patches(explanatory_variables_path, target_variable_path, config.cnn.patch_size, patch_folder)
             train(patch_folder)
         case _:

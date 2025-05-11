@@ -10,12 +10,12 @@ download:
         access_key: ${oc.env:ACCESS_KEY}
         secret_access_key: ${oc.env:SECRET_ACCESS_KEY}
     netatmo:
-        token: 679b955ca250de0e040eb492|949b82156478188bbb44f8918f7295c3
+        token: 679b955ca250de0e040eb492|3e4d1ac00b607a4f241048c0a2cb8696
 
 cnn:
     patch_size: 64
-    model_path: checkpoint.pth.tar
-    input_channels: 1 # SVF & GLI
+    model_path: 'src/cnn/checkpoint.pth.tar'
+    input_channels: 2 # SVF & GLI
     learning_rate: 0.01
     batch_size: 16
     epochs: 30

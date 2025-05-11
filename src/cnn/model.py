@@ -71,7 +71,6 @@ class UNet(nn.Module):
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2),
             self.conv_block(out_channels + out_channels // 2, out_channels)  # Match concatenated channels
         )
-
     
     def forward(self, x):
         # Encoder
