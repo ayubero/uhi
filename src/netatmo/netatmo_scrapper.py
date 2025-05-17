@@ -54,15 +54,21 @@ def get_stations(token, lat_ne, lon_ne, lat_sw, lon_sw, output_folder):
         device_id = item['_id']
         lon = item['place']['location'][0]
         lat = item['place']['location'][1]
+
+        is_inside = (
+            lat_sw <= lat <= lat_ne and
+            lon_sw <= lon <= lon_ne
+        )
         
-        # Find the module_id where the type contains 'temperature'
-        module_id = None
-        for measure_key, measure_data in item['measures'].items():
-            if 'temperature' in measure_data['type']:
-                module_id = measure_key
-                break  # Stop once we find the first match
-        
-        rows.append({'device_id': device_id, 'module_id': module_id, 'lon': lon, 'lat': lat})
+        if is_inside:
+            # Find the module_id where the type contains 'temperature'
+            module_id = None
+            for measure_key, measure_data in item['measures'].items():
+                if 'temperature' in measure_data['type']:
+                    module_id = measure_key
+                    break  # Stop once we find the first match
+            
+            rows.append({'device_id': device_id, 'module_id': module_id, 'lon': lon, 'lat': lat})
 
     # Create a DataFrame
     df = pd.DataFrame(rows)

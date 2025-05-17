@@ -1,5 +1,6 @@
 # Configuration
-crs: '25830' # EPSG code
+crs: '32633' # EPSG code
+#crs: '25830'
 
 study_period: # Format: YYYY-MM-DD
     start: '2023-06-01'
@@ -10,7 +11,7 @@ download:
         access_key: ${oc.env:ACCESS_KEY}
         secret_access_key: ${oc.env:SECRET_ACCESS_KEY}
     netatmo:
-        token: 679b955ca250de0e040eb492|3e4d1ac00b607a4f241048c0a2cb8696
+        token: 679b955ca250de0e040eb492|ea6c8e77267d80103f62c9027bcbd0d2
 
 cnn:
     patch_size: 64
@@ -31,14 +32,43 @@ temperature:
         lower_tail: -2.32
         upper_tail: 1.64
     reference_stations: [
-        '70:ee:50:7a:c2:72',
-        '70:ee:50:73:e2:d8',
-        '70:ee:50:06:91:04'
+        '70:ee:50:73:e9:4c',
+        '70:ee:50:37:20:4a',
+        '70:ee:50:7a:fa:08',
+        '70:ee:50:90:f2:36'
     ]
     stations_to_remove: [
-        '70:ee:50:2b:2b:98',
-        '70:ee:50:b5:0d:9c',
-        '70:ee:50:32:af:3e'
+        '70:ee:50:02:02:54', 
+        '70:ee:50:14:41:64', 
+        '70:ee:50:1f:5f:78',
+        #'70:ee:50:37:20:4a', 
+        '70:ee:50:5f:3e:28', 
+        #'70:ee:50:73:e9:4c',
+        '70:ee:50:7b:2c:2c',
+        '70:ee:50:2d:0d:e0', # <- Here starts manual removed stations
+        '70:ee:50:17:81:ae',
+        '70:ee:50:3f:48:04',
+        '70:ee:50:14:7f:66',
+        '70:ee:50:7f:d2:ac',
+        '70:ee:50:3c:ec:0a',
+        '70:ee:50:02:02:54',
+        '70:ee:50:19:09:54',
+        '70:ee:50:17:bd:60', # <- Further selection, removing too close stations
+        '70:ee:50:90:76:94',
+        '70:ee:50:33:41:8c',
+        '70:ee:50:7a:d7:6e',
+        '70:ee:50:7f:a6:ec',
+        '70:ee:50:28:bc:4c',
+        '70:ee:50:19:3e:f6',
+        '70:ee:50:9d:15:20',
+        '70:ee:50:58:f9:28',
+        '70:ee:50:17:66:76',
+        '70:ee:50:3e:ec:54',
+        '70:ee:50:19:06:30',
+        '70:ee:50:17:66:be',
+        '70:ee:50:2c:79:00',
+        '70:ee:50:1b:20:ba'
+
     ]
 
 logging:
@@ -83,7 +113,7 @@ paths:
         kriging_result: 'kriging_result.tif'
     stations:
         folder_name: 'stations'
-        stations: 'netatmo_data.csv' # Includes all Netatmo stations in the study area with their coordinates
+        stations: 'netatmo_stations.csv' # Includes all Netatmo stations in the study area with their coordinates
         temperatures: 'temperatures.csv' # Includes all recorded temperatures, compiled from the merged CSV files of all stations after data cleaning and quality control
         differences: 'differences.csv' # Includes the computed temperature differences between each station and the reference stations
     cnn:

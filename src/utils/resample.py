@@ -3,6 +3,8 @@ from rasterio.enums import Resampling
 from rasterio.warp import calculate_default_transform, reproject
 import os
 
+from src.logger_setup import logger
+
 def resample(input_path: str, output_resolution: float):
     '''
     Opens a .tif file, rescales it using bilinear interpolation to the given resolution,
@@ -41,5 +43,5 @@ def resample(input_path: str, output_resolution: float):
                     resampling=Resampling.bilinear
                 )
     
-    print(f'Rescaled raster saved to {output_path}')
+    logger.info(f'Rescaled raster saved to {output_path}')
     return output_path

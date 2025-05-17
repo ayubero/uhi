@@ -18,22 +18,29 @@ def get_closest_hour(row, df):
     return closest_row
 
 def perform_qc(station_folder_path):
+    # Find stations CSV
+    station_csv_path = os.path.join(station_folder_path, 'netatmo_stations.csv')
+    stations = pd.read_csv(station_csv_path, delimiter=',')
+
     # Remove all empty files
-    for file_name in os.listdir(station_folder_path):
+    for file_name in os.listdir('./' + station_folder_path):
         file_path = os.path.join(station_folder_path, file_name)
         if os.path.isfile(file_path) and os.path.getsize(file_path) < 5: # Less than 5 bytes
             os.remove(file_path)
             print(f'Deleted: {file_path}')
 
     # Get CSV files with station temperatures
-    station_files = sorted(glob.glob('*.csv'))
-    station_files.remove('netatmo_stations.csv')
+    station_files = sorted(glob.glob(station_folder_path + '/*.csv'))
     try:
-        station_files.remove('temperatures.csv')
+        station_files.remove(station_folder_path + '/netatmo_stations.csv')
     except:
         pass
     try:
-        station_files.remove('diff.csv')
+        station_files.remove(station_folder_path + '/temperatures.csv')
+    except:
+        pass
+    try:
+        station_files.remove(station_folder_path + '/differences.csv')
     except:
         pass
 
@@ -59,9 +66,12 @@ def perform_qc(station_folder_path):
         end_date = '2023-08-31'
         result = result[(result['date'] >= start_date) & (result['date'] <= end_date)]
         #result['station'] = re.search(r"/([^/]+)\.csv$", csv_file).group(1)
-        result['station'] = re.search(r"(.+)\.csv$", csv_file).group(1)
+        station = re.search(r'([^/]+)\.csv$', csv_file).group(1)
+        result['station'] = station
 
-        all_dataframes.append(result)
+        # Check that the station in the study area
+        if stations['device_id'].str.contains(station).any():
+            all_dataframes.append(result)
 
     # Concatenate all dataframes into one
     temperatures = pd.concat(all_dataframes, ignore_index=True)
@@ -111,7 +121,8 @@ def perform_qc(station_folder_path):
 
     # Identify stations that lost 25% or more
     stations_to_remove = station_stats[station_stats['drop_fraction'] >= 0.25].index
-    logger.info('Recommendation: Remove these stations with more than 25\% of samples considered invalid: ', stations_to_remove.tolist())
+    #stations_to_remove = [path.split('/')[-1] for path in stations_to_remove]
+    logger.info(f'Recommendation: Remove these stations with more than 25% of samples considered invalid: {stations_to_remove}')
 
     # Remove unnecessary columns
     temperatures = temperatures.drop(columns=['z_score', 'mean', 'std'])

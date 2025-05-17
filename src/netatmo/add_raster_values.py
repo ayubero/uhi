@@ -29,7 +29,7 @@ def add_raster_values(raster_folder, stations_folder):
     #resample(os.path.join(raster_folder, 'lst_normalized.tif'), resolution)
 
     # Get temperature differences
-    df = pd.read_csv('./stations/diff.csv', delimiter=',')
+    df = pd.read_csv(os.path.join(stations_folder, config.paths.stations.differences), delimiter=',')
     df.head()
 
     # Define the CRS for the original (longitude, latitude) and target (projected coordinates)
@@ -76,16 +76,17 @@ def add_raster_values(raster_folder, stations_folder):
         df['svf'] = svfs
 
     # Add values from GLI raster
-    gli_raster_path = os.path.join(raster_folder, config.paths.rasters.gli)
+    gli_raster_path = os.path.join(raster_folder, 'gli_scaled.tif') #
     with rasterio.open(gli_raster_path) as src:
-        gli = src.read(
+        '''gli = src.read(
             out_shape=(
                 src.count,
                 int(3039),
                 int(3039)
             ),
             resampling = Resampling.bilinear
-        )[0]
+        )[0]'''
+        gli = src.read(1)
 
         # Get NDVI values
         glis = []
@@ -110,4 +111,4 @@ def add_raster_values(raster_folder, stations_folder):
     # Drop NaNs
     df = df.dropna()
 
-    df.to_csv(os.path.join(stations_folder, config.paths.stations.stations), index=False)
+    df.to_csv(os.path.join(stations_folder, config.paths.stations.differences), index=False)

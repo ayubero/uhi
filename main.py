@@ -177,17 +177,22 @@ def main():
         case 'predict-with-kriging':
             client = docker.from_env()
             docker_folder = os.path.join(working_folder, config.paths.kriging.folder_name)
+            os.makedirs(docker_folder, exist_ok=True)
 
             # Copy necessary files into the docker folder
             source_files = [
-                os.path.join(raster_folder, config.paths.rasters.svf),
+                os.path.join(raster_folder, 'svf_scaled.tif'), #config.paths.rasters.svf
                 os.path.join(raster_folder, config.paths.rasters.gli),
-                os.path.join(stations_folder, config.paths.stations.stations)
+                os.path.join(stations_folder, config.paths.stations.differences),
+                os.path.join('src/kriging', 'Dockerfile'),
+                os.path.join('src/kriging', 'kriging.R')
             ]
             destination_files = [
                 os.path.join(docker_folder, config.paths.rasters.svf),
                 os.path.join(docker_folder, config.paths.rasters.gli),
-                os.path.join(docker_folder, config.paths.stations.stations)
+                os.path.join(docker_folder, "data.csv"),
+                os.path.join(docker_folder, 'Dockerfile'),
+                os.path.join(docker_folder, 'kriging.R')
             ]
             for source, destination in zip(source_files, destination_files):
                 shutil.copy2(source, destination)
@@ -199,13 +204,22 @@ def main():
             for chunk in logs:
                 if 'stream' in chunk:
                     print(chunk['stream'].strip())'''
+            container_name = "kriging-container"
+            
+            # Check and remove existing container
+            try:
+                existing = client.containers.get(container_name)
+                existing.remove(force=True)
+                print(f'Removed existing container {container_name}')
+            except:
+                pass
             
             # Run the container
             container = client.containers.run(
                 image='kriging-image',
-                name='kriging-container',
+                name=container_name,
                 detach=True,
-                remove=True # Automatically remove container when done
+                remove=False
             )
 
             # Wait for it to finish
@@ -215,11 +229,13 @@ def main():
             print('Exit code:', result['StatusCode'])
             print('Logs:')
             print(container.logs().decode())
+
+            container.remove()
             
-            # Remove input files
+            '''# Remove input files
             for file_path in destination_files:
                 if os.path.exists(file_path):
-                    os.remove(file_path)
+                    os.remove(file_path)'''
         case 'predict-with-cnn':
             tif_files = [
                 config.paths.rasters.svf, 
