@@ -87,8 +87,8 @@ cat("RMSE:", rmse, "\n")
 
 # --- INTERPOLATION ---
 # Paths to the .tif files
-svf_path <- "rasters/SVF_scaled.tif"
-gli_path <- "rasters/GLI.tif"
+svf_path <- "rasters/svf.tif"
+gli_path <- "rasters/gli.tif"
 #imd_path <- "rasters/Zaragoza_ETRS89_Imperviousness_Density_normalized_scaled.tif"
 #ndvi_path <- "rasters/Zaragoza_ETRS89_NDVI_scaled.tif"
 #swir2_path <- "rasters/Zaragoza_ETRS89_SWIR2_normalized_scaled.tif"

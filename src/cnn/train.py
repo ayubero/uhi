@@ -52,6 +52,8 @@ def train(patch_dir: str):
         train_loss = 0
         for inputs, targets in train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
+            if config.cnn.clamp:
+                targets = torch.clamp(targets, min=config.cnn.clamp_min, max=config.cnn.clamp_max)
             optimizer.zero_grad()
             outputs = model(inputs)
             targets = targets.unsqueeze(1) # Add channel dimension
@@ -69,6 +71,8 @@ def train(patch_dir: str):
         with torch.no_grad():
             for inputs, targets in val_loader:
                 inputs, targets = inputs.to(device), targets.to(device)
+                if config.cnn.clamp:
+                    targets = torch.clamp(targets, min=config.cnn.clamp_min, max=config.cnn.clamp_max)
                 outputs = model(inputs)
                 targets = targets.unsqueeze(1)
                 loss = criterion(outputs, targets)
@@ -95,6 +99,8 @@ def train(patch_dir: str):
     with torch.no_grad():
         for inputs, targets in test_loader:
             inputs, targets = inputs.to(device), targets.to(device)
+            if config.cnn.clamp:
+                targets = torch.clamp(targets, min=config.cnn.clamp_min, max=config.cnn.clamp_max)
             outputs = model(inputs)
             targets = targets.unsqueeze(1) # Add channel dimension
             loss = criterion(outputs, targets)

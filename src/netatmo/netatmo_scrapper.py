@@ -68,7 +68,7 @@ def get_stations(token, lat_ne, lon_ne, lat_sw, lon_sw, output_folder):
                     module_id = measure_key
                     break  # Stop once we find the first match
             
-            rows.append({'device_id': device_id, 'module_id': module_id, 'lon': lon, 'lat': lat})
+            rows.append({'device_id': device_id, 'module_id': module_id, 'lon': lon, 'lat': lat, 'processed': False})
 
     # Create a DataFrame
     df = pd.DataFrame(rows)
@@ -123,8 +123,12 @@ def get_station_data(
         device_id = station['device_id']
         module_id = station['module_id']
 
-        if device_id in existing_files:
-            print('Station', index, 'already processed')
+        if device_id in existing_files or station['processed']:
+            print('Station', device_id, 'already processed')
+            if not station['processed']:
+                stations.at[index, 'processed'] = True
+                stations.to_csv(station_csv_path, index=False)
+                print('Station processed')
         else:
             current_date = start_date
             rows = []
@@ -168,3 +172,7 @@ def get_station_data(
                 df.to_csv(output_csv_path, index=False)
             else:
                 print('Station', index, 'has no data for the selected period')
+
+            stations.at[index, 'processed'] = True
+            print('Station processed')
+            stations.to_csv(station_csv_path, index=False)

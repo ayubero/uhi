@@ -1,6 +1,7 @@
 # Configuration
-crs: '32633' # EPSG code
-#crs: '25830'
+#crs: '25831' # EPSG code
+#crs: '25830' # Used for Zaragoza, Valencia, Sevilla & Oviedo
+crs: '32633' # Used for Graz
 
 study_period: # Format: YYYY-MM-DD
     start: '2023-06-01'
@@ -11,15 +12,18 @@ download:
         access_key: ${oc.env:ACCESS_KEY}
         secret_access_key: ${oc.env:SECRET_ACCESS_KEY}
     netatmo:
-        token: 679b955ca250de0e040eb492|ea6c8e77267d80103f62c9027bcbd0d2
+        token: 679b955ca250de0e040eb492|407cad7a5e5e5f89b1ce7b4889b91a1e
 
 cnn:
     patch_size: 64
     model_path: 'src/cnn/checkpoint.pth.tar'
     input_channels: 2 # SVF & GLI
-    learning_rate: 0.01
+    learning_rate: 0.001
     batch_size: 16
     epochs: 30
+    clamp: True
+    clamp_min: -1.764738
+    clamp_max: 2.781503
 
 kriging:
     added_variables_resolution: 100 # m/px; resolution used in the step 'add-raster-values'
@@ -38,11 +42,11 @@ temperature:
         '70:ee:50:90:f2:36'
     ]
     stations_to_remove: [
-        '70:ee:50:02:02:54', 
-        '70:ee:50:14:41:64', 
+        '70:ee:50:02:02:54',
+        '70:ee:50:14:41:64',
         '70:ee:50:1f:5f:78',
-        #'70:ee:50:37:20:4a', 
-        '70:ee:50:5f:3e:28', 
+        #'70:ee:50:37:20:4a',
+        '70:ee:50:5f:3e:28',
         #'70:ee:50:73:e9:4c',
         '70:ee:50:7b:2c:2c',
         '70:ee:50:2d:0d:e0', # <- Here starts manual removed stations
@@ -68,7 +72,6 @@ temperature:
         '70:ee:50:17:66:be',
         '70:ee:50:2c:79:00',
         '70:ee:50:1b:20:ba'
-
     ]
 
 logging:
